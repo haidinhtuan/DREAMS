@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package com.ldm.infrastructure.serialization.protobuf;
+
+import "google/protobuf/timestamp.proto";
+
+// Represents a Kubernetes cluster
+message K8sCluster {
+  string id = 1;  // Unique identifier for the cluster
+  string location = 2;  // Geographical location (e.g., "Europe", "U.S.", "Asia")
+}
+
+// Represents a microservice within a cluster
+message Microservice {
+  string id = 1;  // Unique identifier for the microservice
+  string name = 2;  // Name of the microservice
+  bool non_migratable = 3;  // Indicates if the microservice can be migrated
+  K8sCluster k8s_cluster = 4;  // The cluster the microservice is part of
+  map<string, double> affinities = 5;  // Affinity scores with other microservices (key: microservice ID)
+  map<string, double> data_exchanged_with_services = 6;  // Data exchanged in MB with other microservices (key: microservice ID)
+  double cpu_usage = 7;  // CPU usage percentage
+  double memory_usage = 8;  // Memory usage in MB
+}
+
+// Represents an action to migrate a microservice
+message MigrationAction {
+  Microservice microservice = 1;  // The microservice to be migrated
+  double improvement_score = 2;  // The improvement score associated with the migration
+  K8sCluster target_cluster = 3;  // The target cluster for the migration
+  google.protobuf.Timestamp suggested_at = 4;  // When the migration was suggested
+  string suggester_id = 5;  // ID of the entity that suggested the migration
+  google.protobuf.Timestamp created_at = 6;  // When the migration action was created
+}

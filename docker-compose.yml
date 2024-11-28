@@ -1,0 +1,153 @@
+version: '3.8'
+services:
+#  ldm1:
+##    build: .
+#    image: tienhungnguyen/local-domain-manager:1.0.4-SNAPSHOT
+#    ports:
+#      - '6000:6000' # Pekko
+#      - '8080:8080' # Quarkus
+#      - '4000:4000' # Raft
+#    container_name: ldm1
+#    hostname: ldm1  # Set unique hostname for intra-container communication
+#    environment:
+#      - QUARKUS_HTTP_PORT=8080
+#      - LDM_HOSTNAME=ldm1
+#      - LDM_ID=54f34e52-b466-49f8-b525-230cd107148b
+#      - CACHE_CAFFEINE_INITIAL_CAPACITY=100
+#      - CACHE_CAFFEINE_MAXIMUM_SIZE=1000
+#      - CACHE_CAFFEINE_EXPIRE_AFTER_WRITE=15M
+#      - CACHE_CAFFEINE_EXPIRE_AFTER_ACCESS=30M
+#      - LDM_LATENCY_CHECK_TIMEOUT=5
+#      - LDM_LATENCY_CHECK_INTERVAL=10
+#      - LDM_LATENCY_CHECK_MAX_RETRY=3
+#      - LDM_PROPOSAL_INTERVAL=30
+#      - LDM_PROPOSAL_REQUEST_TIMEOUT=10
+#      - LDM_PROPOSAL_THRESHOLD=0.2
+#      - LDM_PROPOSAL_SCALING_FACTOR=20
+#      - LDM_VOTING_THRESHOLD=0.3
+#      - LDM_VOTING_SCALING_FACTOR=10
+#      - RAFT_SERVER_PORT=4000
+#      - RAFT_STORAGE_DIR=/data/raft-storage
+#      - RAFT_CLUSTER_ID=2335173a-0958-4712-b7f2-7c6a02abe5d5
+#      - CLUSTER_PEER_1_ID=54f34e52-b466-49f8-b525-230cd107148b
+#      - CLUSTER_PEER_1_HOST=ldm1
+#      - CLUSTER_PEER_1_PORT=4000
+#      - CLUSTER_PEER_2_ID=36f06b8b-cd19-4c72-a9a6-2f37baf4a422
+#      - CLUSTER_PEER_2_HOST=ldm2
+#      - CLUSTER_PEER_2_PORT=4001
+#      - CLUSTER_PEER_3_ID=66472086-5a7b-461e-883e-2d4d4763e34d
+#      - CLUSTER_PEER_3_HOST=ldm3
+#      - CLUSTER_PEER_3_PORT=4002
+#      - TEST_DATA_FILE=/data/LDM1.json
+#      - ldmIdRole="ldmId-54f34e52-b466-49f8-b525-230cd107148b"
+#      - CLUSTER_SEED_NODE=pekko://ClusterSystem@ldm1:6000
+#      - PEKKO_PORT=6000
+#    volumes:
+#      - ./experiments/exp1/LDM1.json:/data/LDM1.json
+#      - ./experiments/exp1/ldm1/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm1
+
+  ldm2:
+#    build: .
+    image: tienhungnguyen/local-domain-manager:1.0.4-SNAPSHOT
+    ports:
+      - '6001:6001' # Pekko
+      - '8081:8081' # Quarkus
+      - '4001:4001' # Raft
+    container_name: ldm2
+    hostname: ldm2  # Set unique hostname for intra-container communication
+    network_mode: host
+    environment:
+      - QUARKUS_HTTP_PORT=8081
+      - LDM_HOSTNAME=localhost
+      - LDM_ID=36f06b8b-cd19-4c72-a9a6-2f37baf4a422
+      - CACHE_CAFFEINE_INITIAL_CAPACITY=100
+      - CACHE_CAFFEINE_MAXIMUM_SIZE=1000
+      - CACHE_CAFFEINE_EXPIRE_AFTER_WRITE=15M
+      - CACHE_CAFFEINE_EXPIRE_AFTER_ACCESS=30M
+      - LDM_LATENCY_CHECK_TIMEOUT=5
+      - LDM_LATENCY_CHECK_INTERVAL=10
+      - LDM_LATENCY_CHECK_MAX_RETRY=3
+      - LDM_PROPOSAL_INTERVAL=30
+      - LDM_PROPOSAL_REQUEST_TIMEOUT=10
+      - LDM_PROPOSAL_THRESHOLD=0.2
+      - LDM_PROPOSAL_SCALING_FACTOR=20
+      - LDM_VOTING_THRESHOLD=0.3
+      - LDM_VOTING_SCALING_FACTOR=10
+      - RAFT_SERVER_PORT=4001
+      - RAFT_STORAGE_DIR=/data/raft-storage
+      - RAFT_CLUSTER_ID=2335173a-0958-4712-b7f2-7c6a02abe5d5
+      - CLUSTER_PEER_1_ID=54f34e52-b466-49f8-b525-230cd107148b
+      - CLUSTER_PEER_1_HOST=localhost
+      #- host.docker.internal
+#      - CLUSTER_PEER_1_HOST=ldm1
+      - CLUSTER_PEER_1_PORT=4000
+      - CLUSTER_PEER_2_ID=36f06b8b-cd19-4c72-a9a6-2f37baf4a422
+      - CLUSTER_PEER_2_HOST=localhost
+      - CLUSTER_PEER_2_PORT=4001
+      - CLUSTER_PEER_3_ID=66472086-5a7b-461e-883e-2d4d4763e34d
+      - CLUSTER_PEER_3_HOST=localhost
+      - CLUSTER_PEER_3_PORT=4002
+      - TEST_DATA_FILE=/data/LDM2.json
+      - ldmIdRole="ldmId-36f06b8b-cd19-4c72-a9a6-2f37baf4a422"
+      - CLUSTER_SEED_NODE=pekko://ClusterSystem@localhost:6000
+#      - CLUSTER_SEED_NODE=pekko://ClusterSystem@ldm1:6000
+      - PEKKO_PORT=6001
+#      - CLUSTER_SEED_NODE=pekko://ClusterSystem@host.docker.internal:6000
+    volumes:
+      - ./experiments/exp1/LDM2.json:/data/LDM2.json
+      - ./experiments/exp1/ldm2/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm2
+#    depends_on:
+#      - ldm1
+
+  ldm3:
+#    build: .
+    image: tienhungnguyen/local-domain-manager:1.0.4-SNAPSHOT
+    ports:
+      - '6002:6002' # Pekko
+      - '8082:8082' # Quarkus
+      - '4002:4002' # Raft
+    container_name: ldm3
+    hostname: ldm3  # Set unique hostname for intra-container communication
+    network_mode: host
+    environment:
+      - QUARKUS_HTTP_PORT=8082
+      - LDM_HOSTNAME=localhost
+      - LDM_ID=66472086-5a7b-461e-883e-2d4d4763e34d
+      - CACHE_CAFFEINE_INITIAL_CAPACITY=100
+      - CACHE_CAFFEINE_MAXIMUM_SIZE=1000
+      - CACHE_CAFFEINE_EXPIRE_AFTER_WRITE=15M
+      - CACHE_CAFFEINE_EXPIRE_AFTER_ACCESS=30M
+      - LDM_LATENCY_CHECK_TIMEOUT=5
+      - LDM_LATENCY_CHECK_INTERVAL=10
+      - LDM_LATENCY_CHECK_MAX_RETRY=3
+      - LDM_PROPOSAL_INTERVAL=30
+      - LDM_PROPOSAL_REQUEST_TIMEOUT=10
+      - LDM_PROPOSAL_THRESHOLD=0.2
+      - LDM_PROPOSAL_SCALING_FACTOR=20
+      - LDM_VOTING_THRESHOLD=0.3
+      - LDM_VOTING_SCALING_FACTOR=10
+      - RAFT_SERVER_PORT=4002
+      - RAFT_STORAGE_DIR=/data/raft-storage
+      - RAFT_CLUSTER_ID=2335173a-0958-4712-b7f2-7c6a02abe5d5
+      - CLUSTER_PEER_1_ID=54f34e52-b466-49f8-b525-230cd107148b
+      - CLUSTER_PEER_1_HOST=localhost
+#      - CLUSTER_PEER_1_HOST=ldm1
+      - CLUSTER_PEER_1_PORT=4000
+      - CLUSTER_PEER_2_ID=36f06b8b-cd19-4c72-a9a6-2f37baf4a422
+      - CLUSTER_PEER_2_HOST=localhost
+      - CLUSTER_PEER_2_PORT=4001
+      - CLUSTER_PEER_3_ID=66472086-5a7b-461e-883e-2d4d4763e34d
+      - CLUSTER_PEER_3_HOST=localhost
+      - CLUSTER_PEER_3_PORT=4002
+      - TEST_DATA_FILE=/data/LDM3.json
+      - ldmIdRole="ldmId-66472086-5a7b-461e-883e-2d4d4763e34d"
+      - CLUSTER_SEED_NODE=pekko://ClusterSystem@localhost:6000
+#      - CLUSTER_SEED_NODE=pekko://ClusterSystem@ldm1:6000
+      - PEKKO_PORT=6002
+    volumes:
+      - ./experiments/exp1/LDM3.json:/data/LDM3.json
+      - ./experiments/exp1/ldm3/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm3
+#    depends_on:
+#      - ldm1
+
+

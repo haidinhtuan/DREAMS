@@ -1,0 +1,51 @@
+quarkus:
+  log:
+    category:
+      "io.quarkus.runtime.configuration":
+        level: DEBUG
+  container-image:
+    build: true
+    push: false
+    name: local-domain-manager
+    registry: docker.io
+#    tag: v1.2.3
+  cache:
+    caffeine:
+      initial-capacity: ${CACHE_CAFFEINE_INITIAL_CAPACITY:100}
+      maximum-size: ${CACHE_CAFFEINE_MAXIMUM_SIZE:1000}
+      expire-after-write: ${CACHE_CAFFEINE_EXPIRE_AFTER_WRITE:15M}
+      expire-after-access: ${CACHE_CAFFEINE_EXPIRE_AFTER_ACCESS:30M}
+ldm:
+  id: ${LDM_ID:54f34e52-b466-49f8-b525-230cd107148b}
+  enable-cluster-monitoring: ${LDM_ENABLE_CLUSTER_MONITORING:false}
+  latencies-check:
+    timeout: ${LDM_LATENCY_CHECK_TIMEOUT:5}
+    interval: ${LDM_LATENCY_CHECK_INTERVAL:10}
+    max-retry: ${LDM_LATENCY_CHECK_MAX_RETRY:3}
+  proposal:
+    interval: ${LDM_PROPOSAL_INTERVAL:30}
+    request-timeout: ${LDM_PROPOSAL_REQUEST_TIMEOUT:10}
+    threshold: ${LDM_PROPOSAL_THRESHOLD:0.2}
+    scaling-factor: ${LDM_PROPOSAL_SCALING_FACTOR:20}
+  voting:
+    threshold: ${LDM_VOTING_THRESHOLD:0.3}
+    scaling-factor: ${LDM_VOTING_SCALING_FACTOR:10}
+raft:
+  client:
+    id: ${LDM_ID:54f34e52-b466-49f8-b525-230cd107148b}
+    storage:
+      dir: ${RAFT_STORAGE_DIR:raft-storage}
+  cluster:
+    id: ${RAFT_CLUSTER_ID:2335173a-0958-4712-b7f2-7c6a02abe5d5}
+    peers:
+    - id: ${CLUSTER_PEER_1_ID:54f34e52-b466-49f8-b525-230cd107148b}
+      host: ${CLUSTER_PEER_1_HOST:localhost}
+      port: ${CLUSTER_PEER_1_PORT:6000}
+    - id: ${CLUSTER_PEER_2_ID:36f06b8b-cd19-4c72-a9a6-2f37baf4a422}
+      host: ${CLUSTER_PEER_2_HOST:localhost}
+      port: ${CLUSTER_PEER_2_PORT:6001}
+    - id: ${CLUSTER_PEER_3_ID:66472086-5a7b-461e-883e-2d4d4763e34d}
+      host: ${CLUSTER_PEER_3_HOST:localhost}
+      port: ${CLUSTER_PEER_3_PORT:6002}
+testdata:
+  file: ${TEST_DATA_FILE:/Users/tienhungnguyen/private-repo/local-domain-manager/experiments/exp1/LDM1.json}

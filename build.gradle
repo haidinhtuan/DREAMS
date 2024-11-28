@@ -1,0 +1,125 @@
+plugins {
+    id 'java'
+    id 'io.quarkus'
+//    id 'com.google.protobuf' version '0.9.3' // Ensure this version supports protoc 3.28.3
+//    id 'com.google.protobuf' version '0.8.19'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+def versions = [
+        ScalaBinary: "2.13"
+]
+
+dependencies {
+    implementation 'io.quarkus:quarkus-config-yaml'
+    implementation 'io.quarkus:quarkus-container-image-jib'
+    implementation 'io.quarkus:quarkus-cache'
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.quarkus:quarkus-rest'
+    implementation 'io.quarkus:quarkus-scheduler'
+    implementation("io.quarkus:quarkus-hibernate-validator")
+    //    implementation 'com.google.protobuf:protobuf-core:4.28.3'
+    implementation 'com.google.protobuf:protobuf-java:4.28.3' // Matches libprotoc 28.3
+    implementation 'com.google.protobuf:protobuf-java-util:4.28.3' // Optional for JSON serialization/deserialization
+    implementation 'org.apache.ratis:ratis-client:3.1.1'
+    implementation 'org.apache.ratis:ratis-common:3.1.1'
+    implementation 'org.apache.ratis:ratis-grpc:3.1.1'
+    implementation 'org.apache.ratis:ratis-metrics-dropwizard3:3.1.1'
+    implementation 'org.apache.ratis:ratis-server:3.1.1'
+    implementation 'io.quarkus:quarkus-jackson'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+    // Apache Pekko
+    implementation platform("org.apache.pekko:pekko-bom_${versions.ScalaBinary}:1.1.2")
+    implementation "org.apache.pekko:pekko-cluster-typed_${versions.ScalaBinary}"
+    implementation "org.apache.pekko:pekko-actor-typed_${versions.ScalaBinary}"
+
+//    implementation 'org.apache.pekko:pekko-cluster-typed_3:1.1.1'
+//    implementation 'org.apache.pekko:pekko-actor-typed_3:1.1.1'
+//    implementation 'org.apache.pekko:pekko-remote_2.13:1.1.1'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.34'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+    // MapStruct and annotation processors
+    implementation 'org.mapstruct:mapstruct:1.6.0'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.0'
+
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.rest-assured:rest-assured'
+}
+
+//protobuf {
+//    protoc {
+//        artifact = "com.google.protobuf:protoc:3.28.3" // Match the installed protoc version
+//    }
+//}
+
+//protobuf {
+//    protoc {
+//        artifact = 'com.google.protobuf:protoc:4.28.3'  // Use the latest version of protoc
+//    }
+//    generateProtoTasks {
+//        all().each { task ->
+//            // Specify the output directory for generated Java files
+//            task.builtins {
+//                java {
+//                    option 'lite'  // Optional: use lite runtime if desired
+//                }
+//            }
+//        }
+//    }
+//    generatedFilesBaseDir = "$projectDir/src/generated"  // Specify base directory for generated files
+//}
+
+
+group 'com.tuberlin'
+version '1.0.4-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+test {
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+}
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(JavaCompile) {
+    options.annotationProcessorPath = configurations.annotationProcessor
+    options.compilerArgs << "-Amapstruct.defaultComponentModel=cdi"
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'com.google.protobuf:protobuf-java-util:4.28.3'
+        force 'com.google.protobuf:protobuf-java:4.28.3'
+    }
+}
+
+
+//tasks.named('quarkusDev') {
+//    systemProperty 'quarkus.profile', 'experiment'
+//}
+
+
+//sourceSets {
+//    main {
+//        java {
+//            srcDirs += "$projectDir/src/generated/main/java"
+//        }
+//    }
+//}
