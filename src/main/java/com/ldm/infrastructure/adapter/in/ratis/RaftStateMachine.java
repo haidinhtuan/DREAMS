@@ -12,6 +12,7 @@ import org.apache.ratis.protocol.Message;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftGroupMemberId;
 import org.apache.ratis.protocol.RaftPeerId;
+import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.raftlog.RaftLog;
 import org.apache.ratis.statemachine.TransactionContext;
 import org.apache.ratis.statemachine.impl.BaseStateMachine;
@@ -28,49 +29,63 @@ public class RaftStateMachine extends BaseStateMachine {
     private final ConsensusHandler consensusHandler;
     private final MigrationService migrationService;
 
-    private final RaftLeaderChangedHandler raftLeaderChangedHandler;
+    private final RaftLeaderChangeHandler raftLeaderChangeHandler;
 
     private final MigrationMapper migrationMapper;
+
+//    private final RaftServerManager raftServerManager;
 
     /**
      * Processes migration actions
      */
+
     @Override
     public CompletableFuture<Message> applyTransaction(TransactionContext trx) {
         RaftProtos.LogEntryProto entry = trx.getLogEntry();
-        // Process migration proposals or other messages
+
         try {
+            // Parse transaction data
             byte[] data = entry.getStateMachineLogEntry().getLogData().toByteArray();
             log.info("Applying transaction with LogIndex: {}", entry.getIndex());
             super.applyTransaction(trx);
 
+            // Map to domain model
             MigrationActionOuterClass.MigrationAction protoMigrationAction = MigrationActionOuterClass.MigrationAction.parseFrom(data);
             MigrationAction migrationAction = this.migrationMapper.toDomainModel(protoMigrationAction);
 
+            // Handle consensus and execute migration
             this.consensusHandler.handle(migrationAction);
             log.info("Transaction processed successfully for LogIndex: {}", entry.getIndex());
 
-            RaftProtos.RaftPeerRole role = trx.getServerRole();
-            if(role== RaftProtos.RaftPeerRole.LEADER) {
-                log.info("This LDM is curerently the leader!");
+            if (trx.getServerRole() == RaftProtos.RaftPeerRole.LEADER) {
+                log.info("This LDM is currently the leader!");
                 this.migrationService.executeMigration(migrationAction);
+
+                return this.getServer()
+                        .thenCompose(raftServer -> handleMigrationAction(raftServer, protoMigrationAction));
             }
 
-            // Convert the success message to ByteString directly
-            ByteString successMessageBytes = ByteString.copyFromUtf8("<<Transaction applied successfully>> : ");
-            ByteString migrationActionBytes = ByteString.copyFrom(protoMigrationAction.toByteArray());
-
-            // Combine both ByteStrings efficiently
-            ByteString migrationSuccessResponse = successMessageBytes.concat(migrationActionBytes);
-
-            // Return the combined message wrapped in a CompletableFuture
-            return CompletableFuture.completedFuture(Message.valueOf(migrationSuccessResponse));
+            // Default response for non-leader nodes
+            return CompletableFuture.completedFuture(Message.valueOf("Transaction applied without leader-specific actions."));
 
         } catch (Exception e) {
             log.error("Failed to process transaction at LogIndex: {}", entry.getIndex(), e);
-            // Return a failed CompletableFuture with an error message
+
+            // Centralized error handling
             return CompletableFuture.completedFuture(Message.valueOf("Error processing transaction: " + e.getMessage()));
         }
+    }
+
+    // Leader-specific logic extracted for clarity
+    private CompletableFuture<Message> handleMigrationAction(RaftServer raftServer, MigrationActionOuterClass.MigrationAction protoMigrationAction) {
+        return this.raftLeaderChangeHandler.triggerLeaderChange(raftServer, this.getId(), this.getGroupId())
+                .map(unused -> {
+                    ByteString successMessageBytes = ByteString.copyFromUtf8("<<Transaction applied successfully>> : ");
+                    ByteString migrationActionBytes = ByteString.copyFrom(protoMigrationAction.toByteArray());
+                    return Message.valueOf(successMessageBytes.concat(migrationActionBytes));
+                })
+                .convert().toCompletionStage()
+                .toCompletableFuture();
     }
 
     /**
@@ -81,7 +96,7 @@ public class RaftStateMachine extends BaseStateMachine {
         log.info("Leader change detected: New leader is {}", newLeaderId);
         try {
             // Delegate the handling of the leader change to RaftLeaderChangedHandler
-            raftLeaderChangedHandler.handleLeaderChangedEvent(groupMemberId, newLeaderId);
+            raftLeaderChangeHandler.handleLeaderChangedEvent(groupMemberId, newLeaderId);
             log.info("Leader change handled successfully by RaftLeaderChangedHandler");
         } catch (Exception e) {
             log.error("Error handling leader change to new leader: {}", newLeaderId, e);

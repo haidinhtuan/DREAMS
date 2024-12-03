@@ -4,6 +4,7 @@ import com.ldm.infrastructure.adapter.in.ratis.RaftStateMachine;
 import io.quarkus.runtime.ShutdownEvent;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Singleton;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ratis.RaftConfigKeys;
@@ -17,6 +18,7 @@ import org.apache.ratis.protocol.RaftPeerId;
 import org.apache.ratis.rpc.SupportedRpcType;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.RaftServerConfigKeys;
+import org.apache.ratis.server.storage.RaftStorage;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 import java.io.File;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RaftServerManager {
 
+    @Getter
     private RaftServer server;
 
     private final RaftClient raftClient;
@@ -40,6 +43,7 @@ public class RaftServerManager {
 //
 //    private final ActorSystemManager actorSystemManager;
 
+    @Getter
     private final LdmConfig ldmConfig;
     private final RaftClusterConfig raftClusterConfig;
 
@@ -64,35 +68,56 @@ public class RaftServerManager {
 
     public void startServer() throws IOException {
         RaftGroup raftGroup = getRaftGroup(raftClusterConfig);
+        Path storageDir = createStorageDirectory();
+
+        RaftStorage.StartupOption startupOption;
+        // Check if the directory is already initialized
+        if (isStorageAlreadyFormatted(storageDir)) {
+            log.info("Raft storage directory is already formatted: {}", storageDir);
+            startupOption = RaftStorage.StartupOption.RECOVER; // Recover from potential inconsistencies
+        } else {
+            log.info("Formatting Raft storage directory: {}", storageDir);
+            startupOption = RaftStorage.StartupOption.FORMAT;
+        }
 
         this.server = RaftServer.newBuilder()
                 .setServerId(RaftPeerId.valueOf(ldmConfig.id()))
+                .setOption(startupOption)
                 .setGroup(raftGroup)
                 .setStateMachine(raftStateMachine)
-                .setProperties(buildRaftProperties())
+                .setProperties(buildRaftProperties(storageDir))
                 .build();
 
         server.start();
         log.info("Raft Server started for LDM ID: {} with group: {}", ldmConfig.id(), raftGroup);
     }
 
-    private RaftProperties buildRaftProperties() {
+    private boolean isStorageAlreadyFormatted(Path storageDir) {
+        File dir = storageDir.toFile();
+        File raftMetaFile = new File(dir, raftClusterConfig.cluster().id()+"/current");
+        return raftMetaFile.exists();
+    }
+
+    private RaftProperties buildRaftProperties(Path storageDir) {
         RaftProperties properties = new RaftProperties();
         RaftConfigKeys.Rpc.setType(properties, SupportedRpcType.GRPC);
         GrpcConfigKeys.Server.setHost(properties, raftClusterConfig.server().host());
         GrpcConfigKeys.Server.setPort(properties, raftClusterConfig.server().port());
 //        properties.set("raft.server.port", String.valueOf(raftClusterConfig.server().port()));
 //        properties.set("ratis.metric.registry.impl", "null");
-        RaftServerConfigKeys.setStorageDir(properties, Collections.singletonList(createStorageDirectory().toFile()));
+
+        RaftServerConfigKeys.setStorageDir(properties, Collections.singletonList(storageDir.toFile()));
         return properties;
     }
 
     private Path createStorageDirectory() {
-        Path storageDir = Paths.get(System.getProperty("user.dir")).resolve(raftClusterConfig.server().storage().dir());
+        Path storageDir = Paths.get(System.getProperty("user.dir"))
+                .resolve(raftClusterConfig.server().storage().dir())
+                .resolve(raftClusterConfig.server().id());
         File storageDirFile = storageDir.toFile();
 
         if (!storageDirFile.exists() && !storageDirFile.mkdirs()) {
-            log.warn("Failed to create storage directory at path: {}", storageDir);
+            log.error("Failed to create storage directory at path: {}", storageDir);
         }
         return storageDir;
     }

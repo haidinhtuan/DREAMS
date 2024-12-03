@@ -27,9 +27,7 @@ public class ActorSystemManager {
 
     public interface Command {}
 
-    public record StartQoSImprovementSuggester(RaftClient raftClient, DomainManager domainManager) implements Command {
-
-    }
+    public record StartQoSImprovementSuggester(RaftClient raftClient, DomainManager domainManager) implements Command {}
 
     public static class StopQoSImprovementSuggester implements Command {}
 

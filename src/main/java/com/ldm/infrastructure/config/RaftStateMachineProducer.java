@@ -3,7 +3,7 @@ package com.ldm.infrastructure.config;
 import com.ldm.application.port.MigrationService;
 import com.ldm.application.service.DefaultConsensusHandler;
 import com.ldm.application.service.DomainManager;
-import com.ldm.infrastructure.adapter.in.ratis.RaftLeaderChangedHandler;
+import com.ldm.infrastructure.adapter.in.ratis.RaftLeaderChangeHandler;
 import com.ldm.infrastructure.adapter.in.ratis.RaftStateMachine;
 import com.ldm.infrastructure.mapper.MigrationMapper;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -33,8 +33,7 @@ public class RaftStateMachineProducer {
         return new RaftStateMachine(
                 new DefaultConsensusHandler(domainManager),
                 migrationService,
-                new RaftLeaderChangedHandler(raftClient, domainManager, actorSystemManager),
-                migrationMapper
-        );
+                new RaftLeaderChangeHandler(raftClient, domainManager, actorSystemManager),
+                migrationMapper);
     }
 }

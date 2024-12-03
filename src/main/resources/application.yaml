@@ -12,6 +12,7 @@ quarkus:
     build: true
     push: false
     name: local-domain-manager
+    group: tienhngnguyen
     registry: docker.io
   cache:
     caffeine:

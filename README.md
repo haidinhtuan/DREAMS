@@ -66,3 +66,22 @@ protoc -I=. --java_out=. migration_action.proto
 protoc -I=. --java_out=. migration_action.proto
 protoc -I=src/main/proto/com/ldm/infrastructure/serialization --java_out=src/main/java src/main/proto/com/ldm/infrastructure/serialization/migration_action.proto
 ```
+
+
+# REST APIs to trigger a leadership change
+The leader change has to be triggered on the current leader, e.g.:
+```
+http://localhost:8080/api/ratis/trigger-leader-change
+http://localhost:8081/api/ratis/trigger-leader-change
+http://localhost:8082/api/ratis/trigger-leader-change
+```
+
+# Troubleshooting
+Kill old processes if something was not terminated properly, e.g.:
+```
+lsof -i :6000
+kill 75605
+
+# Force Kill
+lsof -i :6000 | awk 'NR>1 {print $2}' | xargs kill -9
+```
