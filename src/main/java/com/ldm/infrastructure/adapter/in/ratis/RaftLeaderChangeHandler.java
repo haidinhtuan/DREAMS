@@ -2,8 +2,12 @@ package com.ldm.infrastructure.adapter.in.ratis;
 
 import com.ldm.application.service.DomainManager;
 import com.ldm.infrastructure.config.ActorSystemManager;
+import com.ldm.shared.constants.LeaderElectionModeEnum;
+import com.ldm.shared.util.ApplicationUtils;
+import io.quarkus.runtime.util.StringUtil;
 import io.smallrye.mutiny.Uni;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.protocol.*;
@@ -21,6 +25,12 @@ public class RaftLeaderChangeHandler {
     private final ActorSystemManager actorSystemManager;
 
     private boolean isLeader = false;  // Track whether this node is currently the leader
+
+    @Setter
+    private LeaderElectionModeEnum leaderElectionModeEnum;
+
+    @Setter
+    private String defaultLeader;
 
 
     public void handleLeaderChangedEvent(RaftGroupMemberId groupMemberId, RaftPeerId newLeaderId) {
@@ -55,13 +65,49 @@ public class RaftLeaderChangeHandler {
         actorSystemManager.getActorSystem().tell(new ActorSystemManager.StopQoSImprovementSuggester());
     }
 
-    public Uni<Void> triggerLeaderChange(RaftServer raftServer, RaftPeerId raftPeerId, RaftGroupId raftGroupId){
-        TransferLeadershipRequest request = new TransferLeadershipRequest(ClientId.randomId(), raftPeerId,
-                raftGroupId, System.currentTimeMillis(), null, 5000);
+//    public Uni<Void> triggerLeaderChange(RaftServer raftServer, RaftPeerId raftPeerId, RaftGroupId raftGroupId){
+//        TransferLeadershipRequest request = new TransferLeadershipRequest(ClientId.randomId(), raftPeerId,
+//                raftGroupId, System.currentTimeMillis(), null, 5000);
+//        if(leaderElectionModeEnum == LeaderElectionModeEnum.TESTING) {
+//            GroupInfoRequest groupInfoRequest = new GroupInfoRequest(ClientId.randomId(), raftPeerId, raftGroupId, System.currentTimeMillis());
+//            try {
+//                GroupInfoReply groupInfo = raftServer.getGroupInfo(groupInfoRequest);
+//                if(!StringUtil.isNullOrEmpty(defaultLeader)) {
+//                    log.info(">> Default Leader elected: " + defaultLeader);
+//                    RaftPeer peer = groupInfo.getGroup().getPeer(RaftPeerId.valueOf(defaultLeader));
+//
+//                    request = new TransferLeadershipRequest(ClientId.randomId(), raftPeerId,
+//                            raftGroupId, System.currentTimeMillis(), peer.getId(), 5000);
+//                }
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//
+//        }
+//        return Uni.createFrom().completionStage(safeTransferLeadershipAsync(raftServer, request));
+//    }
 
+    public Uni<Void> triggerLeaderChange(
+            RaftServer raftServer,
+            RaftPeerId raftPeerId,
+            RaftGroupId raftGroupId
+    ) {
+        TransferLeadershipRequest request = ApplicationUtils.createTransferLeadershipRequest(
+                raftPeerId, raftGroupId, null
+        );
+
+        if (LeaderElectionModeEnum.TESTING == leaderElectionModeEnum) {
+//                GroupInfoReply groupInfo = ApplicationUtils.fetchGroupInfo(raftServer, raftPeerId, raftGroupId);
+            if (!StringUtil.isNullOrEmpty(defaultLeader)) {
+                log.info(">> Set to Default Leader: " + defaultLeader);
+//                    RaftPeer defaultLeaderPeer = groupInfo.getGroup().getPeer(RaftPeerId.valueOf(defaultLeader));
+                request = ApplicationUtils.createTransferLeadershipRequest(raftPeerId, raftGroupId, RaftPeerId.valueOf(defaultLeader));
+            }
+        }
 
         return Uni.createFrom().completionStage(safeTransferLeadershipAsync(raftServer, request));
     }
+
 
     private CompletableFuture<Void> safeTransferLeadershipAsync(RaftServer raftServer, TransferLeadershipRequest request) {
         try {

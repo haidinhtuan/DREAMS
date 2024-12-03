@@ -30,14 +30,13 @@ ldm:
     interval: ${LDM_LATENCY_CHECK_INTERVAL:10}
     max-retry: ${LDM_LATENCY_CHECK_MAX_RETRY:3}
   proposal:
-    interval: ${LDM_PROPOSAL_INTERVAL:30}
+    interval: ${LDM_PROPOSAL_INTERVAL:10}
     request-timeout: ${LDM_PROPOSAL_REQUEST_TIMEOUT:10}
     threshold: ${LDM_PROPOSAL_THRESHOLD:0.2}
     scaling-factor: ${LDM_PROPOSAL_SCALING_FACTOR:20}
   voting:
     threshold: ${LDM_VOTING_THRESHOLD:0.3}
     scaling-factor: ${LDM_VOTING_SCALING_FACTOR:10}
-
 # Raft Configuration
 raft:
   server:
@@ -62,3 +61,8 @@ raft:
 # Test Data
 testdata:
   file: ${TEST_DATA_FILE:/Users/tienhungnguyen/private-repo/local-domain-manager/experiments/exp1/LDM1.json}
+
+leader:
+  election:
+    mode: ${LEADER_ELECTION_MODE:TESTING}
+    default-leader: ${DEFAULT_LEADER:54f34e52-b466-49f8-b525-230cd107148b}

@@ -2,6 +2,7 @@ package com.ldm.infrastructure.adapter.in.rest;
 
 import com.ldm.infrastructure.adapter.in.ratis.RaftStateMachine;
 import com.ldm.infrastructure.config.RaftServerManager;
+import com.ldm.shared.util.ApplicationUtils;
 import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
@@ -27,8 +28,8 @@ public class RaftActionResource {
     private final RaftServerManager raftServerManager;
 
     @GET
-    @Path("/trigger-leader-change")
-    public Uni<Response> triggerLeaderChange() {
+    @Path("/trigger-leader-change/{raftPeerId}")
+    public Uni<Response> triggerLeaderChange(String raftPeerId) {
         ClientId clientId = ClientId.randomId(); // Generate a new Client ID
 
         return Uni.createFrom()
@@ -36,10 +37,13 @@ public class RaftActionResource {
                 .onItem().transformToUni(server -> {
                     RaftPeerId serverId = server.getId();
                     RaftGroupId groupId = raftStateMachine.getGroupId();
-                    long callId = System.currentTimeMillis();
-                    long timeoutMs = 5000; // Configured timeout
 
-                    TransferLeadershipRequest request = new TransferLeadershipRequest(clientId, serverId, groupId, callId, null, timeoutMs);
+                    TransferLeadershipRequest request;
+                    if (raftPeerId != null) {
+                        request = ApplicationUtils.createTransferLeadershipRequest(serverId, groupId, RaftPeerId.valueOf(raftPeerId));
+                    } else {
+                        request = ApplicationUtils.createTransferLeadershipRequest(serverId, groupId, null);
+                    }
 
                     return Uni.createFrom().completionStage(safeTransferLeadershipAsync(request))
                             .onItem().transform(unused -> Response.accepted()

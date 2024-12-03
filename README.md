@@ -71,9 +71,9 @@ protoc -I=src/main/proto/com/ldm/infrastructure/serialization --java_out=src/mai
 # REST APIs to trigger a leadership change
 The leader change has to be triggered on the current leader, e.g.:
 ```
-http://localhost:8080/api/ratis/trigger-leader-change
-http://localhost:8081/api/ratis/trigger-leader-change
-http://localhost:8082/api/ratis/trigger-leader-change
+http://localhost:8080/api/ratis/trigger-leader-change/54f34e52-b466-49f8-b525-230cd107148b
+http://localhost:8081/api/ratis/trigger-leader-change/54f34e52-b466-49f8-b525-230cd107148b
+http://localhost:8082/api/ratis/trigger-leader-change/54f34e52-b466-49f8-b525-230cd107148b
 ```
 
 # Troubleshooting

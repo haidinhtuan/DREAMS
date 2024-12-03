@@ -33,8 +33,6 @@ public class RaftStateMachine extends BaseStateMachine {
 
     private final MigrationMapper migrationMapper;
 
-//    private final RaftServerManager raftServerManager;
-
     /**
      * Processes migration actions
      */

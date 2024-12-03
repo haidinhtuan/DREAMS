@@ -76,8 +76,14 @@ public class QoSImprovementSuggester {
                         CompletionStage<Receptionist.Listing> listingCompletion = discoverInstances(context, TIMEOUT_DURATION, QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, listingResponseAdapter);
 
                         listingCompletion.thenCompose(listing -> {
+                            context.getLog().info("Retrieved listing: {}", listing);
                             Set<ActorRef<QoSImproveSuggestionProtocol>> suggesters =
                                     listing.getServiceInstances(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY);
+
+                            if (suggesters.isEmpty()) {
+                                context.getLog().warn("No QoSImprovementSuggester instances found. Proceeding with the optimization stage...");
+                                return CompletableFuture.completedFuture(null); // Skip further processing
+                            }
 
                             // Send shutdown to each suggester and collect acknowledgment futures
                             Set<CompletionStage<Void>> shutdownAcks = suggesters.stream()
