@@ -10,9 +10,8 @@ import org.apache.pekko.pattern.StatusReply;
 
 public class MigrationProposalVoter {
 
-    public interface VotingProtocol {}
-
-//    public record EvaluateMigrationProposal(MigrationCandidate migrationCandidate, ActorRef<StatusReply<Boolean>> replyTo) implements VotingProtocol {}
+    public interface VotingProtocol {
+    }
 
     public static class EvaluateMigrationProposal implements VotingProtocol {
 
@@ -32,6 +31,7 @@ public class MigrationProposalVoter {
             return migrationCandidate;
         }
     }
+
     public static final ServiceKey<VotingProtocol> MIGRATION_PROPOSAL_VOTER_KEY =
             ServiceKey.create(VotingProtocol.class, "MigrationProposalVoter");
 
@@ -40,7 +40,7 @@ public class MigrationProposalVoter {
 //            context.getSystem().receptionist().tell(Receptionist.register(MIGRATION_PROPOSAL_VOTER_KEY, context.getSelf()));
             return Behaviors.receive(VotingProtocol.class)
                     .onMessage(EvaluateMigrationProposal.class, message -> {
-                        context.getLog().info(ldmId+ ": "+"Evaluation migration proposal {}", message);
+                        context.getLog().info(ldmId + ": " + "Evaluation migration proposal {}", message);
                         boolean approveMigrationProposal = domainManager.voteOnMigrationProposal(message.migrationCandidate.microservice(), message.migrationCandidate.targetK8sCluster().getId());
                         message.getReplyTo().tell(StatusReply.success(approveMigrationProposal));
                         return Behaviors.same();

@@ -65,28 +65,6 @@ public class RaftLeaderChangeHandler {
         actorSystemManager.getActorSystem().tell(new ActorSystemManager.StopQoSImprovementSuggester());
     }
 
-//    public Uni<Void> triggerLeaderChange(RaftServer raftServer, RaftPeerId raftPeerId, RaftGroupId raftGroupId){
-//        TransferLeadershipRequest request = new TransferLeadershipRequest(ClientId.randomId(), raftPeerId,
-//                raftGroupId, System.currentTimeMillis(), null, 5000);
-//        if(leaderElectionModeEnum == LeaderElectionModeEnum.TESTING) {
-//            GroupInfoRequest groupInfoRequest = new GroupInfoRequest(ClientId.randomId(), raftPeerId, raftGroupId, System.currentTimeMillis());
-//            try {
-//                GroupInfoReply groupInfo = raftServer.getGroupInfo(groupInfoRequest);
-//                if(!StringUtil.isNullOrEmpty(defaultLeader)) {
-//                    log.info(">> Default Leader elected: " + defaultLeader);
-//                    RaftPeer peer = groupInfo.getGroup().getPeer(RaftPeerId.valueOf(defaultLeader));
-//
-//                    request = new TransferLeadershipRequest(ClientId.randomId(), raftPeerId,
-//                            raftGroupId, System.currentTimeMillis(), peer.getId(), 5000);
-//                }
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//
-//        }
-//        return Uni.createFrom().completionStage(safeTransferLeadershipAsync(raftServer, request));
-//    }
-
     public Uni<Void> triggerLeaderChange(
             RaftServer raftServer,
             RaftPeerId raftPeerId,
