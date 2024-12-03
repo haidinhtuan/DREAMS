@@ -76,7 +76,7 @@ public class QoSImprovementSuggester {
                         CompletionStage<Receptionist.Listing> listingCompletion = discoverInstances(context, TIMEOUT_DURATION, QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, listingResponseAdapter);
 
                         listingCompletion.thenCompose(listing -> {
-                            context.getLog().info("Retrieved listing: {}", listing);
+//                            context.getLog().info("Retrieved listing: {}", listing);
                             Set<ActorRef<QoSImproveSuggestionProtocol>> suggesters =
                                     listing.getServiceInstances(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY);
 
@@ -105,6 +105,9 @@ public class QoSImprovementSuggester {
                             context.getLog().info("All suggesters shut down. Proceeding with QoS improvement.");
                             MigrationCandidate migrationCandidate = domainManager.findMigrationCandidate();
 
+                            if(migrationCandidate==null) {
+                                return;
+                            }
                             // Discover all MigrationProposalVoter instances and handle voting
                             discoverInstances(context, TIMEOUT_DURATION, MigrationProposalVoter.MIGRATION_PROPOSAL_VOTER_KEY, listingResponseAdapter)
                                     .thenCompose(listing -> {
@@ -153,16 +156,32 @@ public class QoSImprovementSuggester {
                     })
                     .onMessage(Shutdown.class, message -> {
                         context.getLog().info("Received shutdown request");
-                        // Deregister from the receptionist
-                        context.getSystem().receptionist().tell(Receptionist.deregister(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.getSelf()));
+                        discoverInstances(context, Duration.ofSeconds(5), QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.messageAdapter(Receptionist.Listing.class, QoSImprovementSuggesterListings::new))
+                                .thenAccept(listing -> {
+                                    if (listing.getServiceInstances(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY).contains(context.getSelf())) {
+                                        // Deregister from the receptionist
+                                        context.getLog().info("Deregistering the QoSImprovementSuggester from the receptionist...");
+                                        context.getSystem().receptionist().tell(Receptionist.deregister(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.getSelf()));
+                                    }
+                                });
                         // Acknowledge shutdown and stop the actor
                         message.replyTo.tell(StatusReply.success(null));
                         return Behaviors.stopped();
                     })
                     .onMessage(StopCommand.class, message -> {
                         context.getLog().info("Stopping QoSImprovementSuggester");
-                        // Deregister from the receptionist
-                        context.getSystem().receptionist().tell(Receptionist.deregister(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.getSelf()));
+
+                        discoverInstances(context, Duration.ofSeconds(5), QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.messageAdapter(Receptionist.Listing.class, QoSImprovementSuggesterListings::new))
+                                .thenAccept(listing -> {
+                                    if (listing.getServiceInstances(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY).contains(context.getSelf())) {
+                                        // Deregister from the receptionist
+                                        context.getLog().info("Deregistering the QoSImprovementSuggester from the receptionist...");
+                                        context.getSystem().receptionist().tell(Receptionist.deregister(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.getSelf()));
+                                    }
+                                });
+
+//                        // Deregister from the receptionist
+//                        context.getSystem().receptionist().tell(Receptionist.deregister(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.getSelf()));
                         return Behaviors.stopped();
                     })
                     .build();
@@ -172,7 +191,7 @@ public class QoSImprovementSuggester {
     private static CompletionStage<Receptionist.Listing> discoverInstances(ActorContext<QoSImproveSuggestionProtocol> context, Duration timeout, ServiceKey<?> serviceKey, ActorRef<Receptionist.Listing> responseAdapter) {
         return AskPattern.ask(
                 context.getSystem().receptionist(),
-                replyTo -> Receptionist.find(serviceKey, responseAdapter),
+                replyTo -> Receptionist.find(serviceKey, replyTo),
                 timeout,
                 context.getSystem().scheduler()
         );

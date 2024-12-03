@@ -24,6 +24,10 @@ public class DomainManager {
         log.info("****** Start running QoS Improvement Proposal!******");
         MigrationCandidate bestMigrationCandidate = this.qosOptimizationService.findBestMigrationCandidate();
 
+        if(bestMigrationCandidate==null) {
+            log.info("Leader LDM with ID <" + ldmConfig.id() + "> does not propose migration since no candidate is suitable!");
+            return null;
+        }
         // Only propose migration if improvement is significant
         if (bestMigrationCandidate.improvementScore() > this.ldmConfig.proposal().threshold()) {
             log.info("Leader LDM with ID <" + ldmConfig.id() + "> proposes migration to target cluster.");
