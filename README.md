@@ -58,6 +58,16 @@ If you want to learn more about building native executables, please consult <htt
 ./gradlew clean build -Dquarkus.container-image.build=true -Dquarkus.container-image.push=false
 ```
 
+## Starting a LDM from the IDE
+
+Make sure to add the following entries on the `hosts` file if you want to run a LDM outside of Docker (e.g. localhost via the IDE), e.g.:
+```
+127.0.0.1 host.docker.internal
+127.0.0.1 ldm1
+127.0.0.1 ldm2
+127.0.0.1 ldm3
+```
+
 ## Compiling Protobuf files
 
 Run the following command to generate the protoc command:
