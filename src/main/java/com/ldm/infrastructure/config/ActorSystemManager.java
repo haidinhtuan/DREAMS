@@ -16,7 +16,6 @@ import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.ActorSystem;
 import org.apache.pekko.actor.typed.Behavior;
 import org.apache.pekko.actor.typed.javadsl.Behaviors;
-import org.apache.pekko.actor.typed.receptionist.Receptionist;
 import org.apache.pekko.cluster.ClusterEvent;
 import org.apache.ratis.client.RaftClient;
 
@@ -79,12 +78,12 @@ public class ActorSystemManager {
                             );
 
                             // Register the QoSImprovementSuggester actor with the receptionist
-                            context.getSystem().receptionist().tell(
-                                    Receptionist.register(QoSImprovementSuggester.QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, qosImprovementSuggesterRef)
-                            );
-                            log.info("QoSImprovementSuggester actor started and registered successfully.");
+//                            context.getSystem().receptionist().tell(
+//                                    Receptionist.register(QoSImprovementSuggester.QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, qosImprovementSuggesterRef)
+//                            );
+                            log.info("## ActorSystemsManager: QoSImprovementSuggester actor created. ##");
                         } else {
-                            log.warn("QoSImprovementSuggester is already running.");
+                            log.warn("## ActorSystemsManager: QoSImprovementSuggester is already running. ##");
                         }
                         return Behaviors.same();
                     })
@@ -92,17 +91,17 @@ public class ActorSystemManager {
                         if (qosImprovementSuggesterRef != null) {
                             // Send a stop message to the QoSImprovementSuggester actor
                             qosImprovementSuggesterRef.tell(new QoSImprovementSuggester.StopCommand());
-                            log.info("Stop command sent to QoSImprovementSuggester actor.");
+                            log.info("## ActorSystemsManager: Stop command sent to QoSImprovementSuggester actor. ##");
 
                             // Deregister from receptionist if needed
-                            context.getSystem().receptionist().tell(
-                                    Receptionist.deregister(QoSImprovementSuggester.QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, qosImprovementSuggesterRef)
-                            );
+//                            context.getSystem().receptionist().tell(
+//                                    Receptionist.deregister(QoSImprovementSuggester.QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, qosImprovementSuggesterRef)
+//                            );
 
                             // Clear the reference
                             qosImprovementSuggesterRef = null;
                         } else {
-                            log.warn("No QoSImprovementSuggester instance is running.");
+                            log.warn("## ActorSystemsManager: No QoSImprovementSuggester instance is running. ##");
                         }
                         return Behaviors.same();
                     })

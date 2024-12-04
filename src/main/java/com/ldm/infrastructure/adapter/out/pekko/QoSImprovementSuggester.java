@@ -6,6 +6,7 @@ import com.ldm.domain.model.MigrationCandidate;
 import com.ldm.infrastructure.adapter.in.pekko.MigrationProposalVoter;
 import com.ldm.infrastructure.mapper.MigrationMapper;
 import com.ldm.infrastructure.serialization.protobuf.MigrationActionOuterClass;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.Behavior;
 import org.apache.pekko.actor.typed.javadsl.ActorContext;
@@ -18,25 +19,23 @@ import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.protocol.Message;
 import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class QoSImprovementSuggester {
 
-    public interface QoSImproveSuggestionProtocol {
-    }
+    public interface QoSImproveSuggestionProtocol {}
 
-    public static class RunQoSImprovement implements QoSImproveSuggestionProtocol {
-    }
+    public static class RunQoSImprovement implements QoSImproveSuggestionProtocol {}
 
-    public record Shutdown(ActorRef<StatusReply<Void>> replyTo) implements QoSImproveSuggestionProtocol {
-    }
+    public record Shutdown(ActorRef<StatusReply<Void>> replyTo) implements QoSImproveSuggestionProtocol, Serializable {}
 
-    public static class StopCommand implements QoSImproveSuggestionProtocol {
-    }
+    public static class StopCommand implements QoSImproveSuggestionProtocol {}
 
     // Wrapper class for Receptionist Listing responses
     public static class QoSImprovementSuggesterListings implements QoSImproveSuggestionProtocol {
@@ -77,108 +76,95 @@ public class QoSImprovementSuggester {
 
                         listingCompletion.thenCompose(listing -> {
 //                            context.getLog().info("Retrieved listing: {}", listing);
-                            Set<ActorRef<QoSImproveSuggestionProtocol>> suggesters =
-                                    listing.getServiceInstances(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY);
+                                    Set<ActorRef<QoSImproveSuggestionProtocol>> suggesters =
+                                            listing.getServiceInstances(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY);
 
-                            if (suggesters.isEmpty()) {
-                                context.getLog().warn("No QoSImprovementSuggester instances found. Proceeding with the optimization stage...");
-                                return CompletableFuture.completedFuture(null); // Skip further processing
-                            }
+                                    if (suggesters.isEmpty()) {
+                                        log.warn("No QoSImprovementSuggester instances found. Proceeding with the optimization stage...");
+                                        return CompletableFuture.completedFuture(null); // Skip further processing
+                                    }
 
-                            // Send shutdown to each suggester and collect acknowledgment futures
-                            Set<CompletionStage<Void>> shutdownAcks = suggesters.stream()
-                                    .map(suggester -> AskPattern.askWithStatus(
-                                            suggester,
-                                            Shutdown::new,
-                                            TIMEOUT_DURATION,
-                                            context.getSystem().scheduler()
-                                    ))
-                                    .collect(Collectors.toSet());
+                                    // Send shutdown to each suggester and collect acknowledgment futures
+                                    Set<CompletionStage<Void>> shutdownAcks = suggesters.stream()
+                                            .filter(qoSImproveSuggestionProtocolActorRef -> !qoSImproveSuggestionProtocolActorRef.equals(context.getSelf()))
+                                            .map(suggester -> AskPattern.askWithStatus(
+                                                    suggester,
+                                                    Shutdown::new,
+                                                    TIMEOUT_DURATION,
+                                                    context.getSystem().scheduler()
+                                            ))
+                                            .collect(Collectors.toSet());
 
-                            // Combine all acknowledgments into a CompletableFuture
-                            return CompletableFuture.allOf(
-                                    shutdownAcks.stream()
-                                            .map(CompletionStage::toCompletableFuture)
-                                            .toArray(CompletableFuture[]::new)
-                            );
-                        }).thenRun(() -> {
-                            context.getLog().info("All suggesters shut down. Proceeding with QoS improvement.");
-                            MigrationCandidate migrationCandidate = domainManager.findMigrationCandidate();
+                                    // Combine all acknowledgments into a CompletableFuture
+                                    return CompletableFuture.allOf(
+                                            shutdownAcks.stream()
+                                                    .map(CompletionStage::toCompletableFuture)
+                                                    .toArray(CompletableFuture[]::new)
+                                    );
+                                })
+                                .thenRun(() -> {
+                                    log.info("All suggesters shut down. Proceeding with QoS improvement.");
+                                    MigrationCandidate migrationCandidate = domainManager.findMigrationCandidate();
 
-                            if(migrationCandidate==null) {
-                                return;
-                            }
-                            // Discover all MigrationProposalVoter instances and handle voting
-                            discoverInstances(context, TIMEOUT_DURATION, MigrationProposalVoter.MIGRATION_PROPOSAL_VOTER_KEY, listingResponseAdapter)
-                                    .thenCompose(listing -> {
-                                        Set<ActorRef<MigrationProposalVoter.VotingProtocol>> migrationProposalVoterSet =
-                                                listing.getServiceInstances(MigrationProposalVoter.MIGRATION_PROPOSAL_VOTER_KEY);
+                                    if (migrationCandidate == null) {
+                                        return;
+                                    }
+                                    // Discover all MigrationProposalVoter instances and handle voting
+                                    discoverInstances(context, TIMEOUT_DURATION, MigrationProposalVoter.MIGRATION_PROPOSAL_VOTER_KEY, listingResponseAdapter)
+                                            .thenCompose(listing -> {
+                                                Set<ActorRef<MigrationProposalVoter.VotingProtocol>> migrationProposalVoterSet =
+                                                        listing.getServiceInstances(MigrationProposalVoter.MIGRATION_PROPOSAL_VOTER_KEY);
 
-                                        // Filter out the local voter
-                                        Set<ActorRef<MigrationProposalVoter.VotingProtocol>> remoteVoterSet = migrationProposalVoterSet.stream()
-                                                .filter(voter -> !voter.equals(localVoterRef))
-                                                .collect(Collectors.toSet());
+                                                // Filter out the local voter
+                                                Set<ActorRef<MigrationProposalVoter.VotingProtocol>> remoteVoterSet = migrationProposalVoterSet.stream()
+                                                        .filter(voter -> !voter.equals(localVoterRef))
+                                                        .collect(Collectors.toSet());
 
-                                        Set<CompletionStage<Boolean>> votes = collectVotes(remoteVoterSet, migrationCandidate, TIMEOUT_DURATION, context);
+                                                Set<CompletionStage<Boolean>> votes = collectVotes(remoteVoterSet, migrationCandidate, TIMEOUT_DURATION, context);
 
-                                        // Combine all voting results and evaluate majority approval
-                                        return CompletableFuture.allOf(
-                                                        votes.stream()
-                                                                .map(CompletionStage::toCompletableFuture)
-                                                                .toArray(CompletableFuture[]::new)
-                                                ).thenAccept(v -> {
-                                                    if (shouldMigrate(votes, migrationProposalVoterSet.size(), context)) {
-                                                        context.getLog().info("Sending the migration action via the RaftClient...");
-                                                        MigrationAction migrationAction = migrationCandidate.toMigrationAction();
+                                                // Combine all voting results and evaluate majority approval
+                                                return CompletableFuture.allOf(
+                                                                votes.stream()
+                                                                        .map(CompletionStage::toCompletableFuture)
+                                                                        .toArray(CompletableFuture[]::new))
+                                                        .thenAccept(v -> {
+                                                            if (shouldMigrate(votes, migrationProposalVoterSet.size(), context)) {
+                                                                log.info("Sending the migration action via the RaftClient...");
+                                                                MigrationAction migrationAction = migrationCandidate.toMigrationAction();
 
-                                                        MigrationActionOuterClass.MigrationAction migrationActionProto = migrationMapper.toProto(migrationAction);
-                                                        Message migrationActionMessage = Message.valueOf(ByteString.copyFrom(migrationActionProto.toByteArray()));
+                                                                MigrationActionOuterClass.MigrationAction migrationActionProto = migrationMapper.toProto(migrationAction);
+                                                                Message migrationActionMessage = Message.valueOf(ByteString.copyFrom(migrationActionProto.toByteArray()));
 
-                                                        raftClient.async().send(migrationActionMessage)
-                                                                .thenAccept(reply -> context.getLog().info("Migration action sent successfully via RaftClient: {} ", migrationAction))
-                                                                .exceptionally(ex -> {
-                                                                    context.getLog().error("Error while sending the migration action via RaftClient: ", ex);
-                                                                    return null;
-                                                                });;
-                                                    }
-                                                })
-                                                .exceptionally(ex -> {
-                                                    context.getLog().error("Error during the voting process: ", ex);
-                                                    return null;
-                                                });
-                                    });
-                        }).exceptionally(ex -> {
-                            context.getLog().error("Failed to shut down all suggesters", ex);
-                            return null;
-                        });
+                                                                raftClient.async().send(migrationActionMessage)
+                                                                        .thenAccept(reply -> log.info("Migration action sent successfully via RaftClient: {} ", migrationAction))
+                                                                        .exceptionally(ex -> {
+                                                                            log.error("Error while sending the migration action via RaftClient: ", ex);
+                                                                            return null;
+                                                                        });
+                                                            }
+                                                        })
+                                                        .exceptionally(ex -> {
+                                                            log.error("Error during the voting process: ", ex);
+                                                            return null;
+                                                        });
+                                            });
+                                }).exceptionally(ex -> {
+                                    context.getLog().error("Failed to shut down all suggesters", ex);
+                                    return null;
+                                });
 
                         return Behaviors.same();
                     })
                     .onMessage(Shutdown.class, message -> {
                         context.getLog().info("Received shutdown request");
-                        discoverInstances(context, Duration.ofSeconds(5), QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.messageAdapter(Receptionist.Listing.class, QoSImprovementSuggesterListings::new))
-                                .thenAccept(listing -> {
-                                    if (listing.getServiceInstances(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY).contains(context.getSelf())) {
-                                        // Deregister from the receptionist
-                                        context.getLog().info("Deregistering the QoSImprovementSuggester from the receptionist...");
-                                        context.getSystem().receptionist().tell(Receptionist.deregister(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.getSelf()));
-                                    }
-                                });
+                        deregisterQoSImprovementSuggester(context);
                         // Acknowledge shutdown and stop the actor
                         message.replyTo.tell(StatusReply.success(null));
                         return Behaviors.stopped();
                     })
                     .onMessage(StopCommand.class, message -> {
                         context.getLog().info("Stopping QoSImprovementSuggester");
-
-                        discoverInstances(context, Duration.ofSeconds(5), QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.messageAdapter(Receptionist.Listing.class, QoSImprovementSuggesterListings::new))
-                                .thenAccept(listing -> {
-                                    if (listing.getServiceInstances(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY).contains(context.getSelf())) {
-                                        // Deregister from the receptionist
-                                        context.getLog().info("Deregistering the QoSImprovementSuggester from the receptionist...");
-                                        context.getSystem().receptionist().tell(Receptionist.deregister(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.getSelf()));
-                                    }
-                                });
+                        deregisterQoSImprovementSuggester(context);
 
 //                        // Deregister from the receptionist
 //                        context.getSystem().receptionist().tell(Receptionist.deregister(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.getSelf()));
@@ -186,6 +172,17 @@ public class QoSImprovementSuggester {
                     })
                     .build();
         }));
+    }
+
+    public static void deregisterQoSImprovementSuggester(ActorContext<QoSImproveSuggestionProtocol> context) {
+        discoverInstances(context, Duration.ofSeconds(5), QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.messageAdapter(Receptionist.Listing.class, QoSImprovementSuggesterListings::new))
+                .thenAccept(listing -> {
+                    if (listing.getServiceInstances(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY).contains(context.getSelf())) {
+                        // Deregister from the receptionist
+                        context.getLog().info("Deregistering the QoSImprovementSuggester from the receptionist...");
+                        context.getSystem().receptionist().tell(Receptionist.deregister(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.getSelf()));
+                    }
+                });
     }
 
     private static CompletionStage<Receptionist.Listing> discoverInstances(ActorContext<QoSImproveSuggestionProtocol> context, Duration timeout, ServiceKey<?> serviceKey, ActorRef<Receptionist.Listing> responseAdapter) {
