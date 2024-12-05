@@ -34,24 +34,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class RaftServerManager {
-
     @Getter
     private RaftServer server;
 
     private final RaftClient raftClient;
-//    private final DomainManager domainManager;
-//
-//    private final ActorSystemManager actorSystemManager;
 
     @Getter
     private final LdmConfig ldmConfig;
     private final RaftClusterConfig raftClusterConfig;
 
     private final RaftStateMachine raftStateMachine;
-
-//    private final MigrationMapper migrationMapper;
-//
-//    private final MigrationService migrationService;
 
     void startRaftServer() {
         try {

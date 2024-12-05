@@ -77,10 +77,6 @@ public class ActorSystemManager {
                                     "QoSImprovementSuggester"
                             );
 
-                            // Register the QoSImprovementSuggester actor with the receptionist
-//                            context.getSystem().receptionist().tell(
-//                                    Receptionist.register(QoSImprovementSuggester.QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, qosImprovementSuggesterRef)
-//                            );
                             log.info("## ActorSystemsManager: QoSImprovementSuggester actor created. ##");
                         } else {
                             log.warn("## ActorSystemsManager: QoSImprovementSuggester is already running. ##");
@@ -92,11 +88,6 @@ public class ActorSystemManager {
                             // Send a stop message to the QoSImprovementSuggester actor
                             qosImprovementSuggesterRef.tell(new QoSImprovementSuggester.StopCommand());
                             log.info("## ActorSystemsManager: Stop command sent to QoSImprovementSuggester actor. ##");
-
-                            // Deregister from receptionist if needed
-//                            context.getSystem().receptionist().tell(
-//                                    Receptionist.deregister(QoSImprovementSuggester.QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, qosImprovementSuggesterRef)
-//                            );
 
                             // Clear the reference
                             qosImprovementSuggesterRef = null;
