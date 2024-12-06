@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package com.ldm.infrastructure.serialization.protobuf;
+
+// Represents a Ping message
+message Ping {
+  string replyTo = 1;  // ActorRef of the sender serialized as a string
+  int64 startTime = 2; // Start time in nanoseconds
+}
+
+// Represents a Pong message
+message Pong {
+  string ldmId = 1; // Logical domain manager ID
+  int64 startTime = 2; // Start time in nanoseconds
+}

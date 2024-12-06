@@ -73,8 +73,9 @@ Make sure to add the following entries on the `hosts` file if you want to run a 
 Run the following command to generate the protoc command:
 ```
 protoc -I=. --java_out=. migration_action.proto
-protoc -I=. --java_out=. migration_action.proto
+protoc -I=. --java_out=. ping_pong.proto
 protoc -I=src/main/proto/com/ldm/infrastructure/serialization --java_out=src/main/java src/main/proto/com/ldm/infrastructure/serialization/migration_action.proto
+protoc -I=src/main/proto/com/ldm/infrastructure/serialization --java_out=src/main/java src/main/proto/com/ldm/infrastructure/serialization/ping_pong.proto
 ```
 
 

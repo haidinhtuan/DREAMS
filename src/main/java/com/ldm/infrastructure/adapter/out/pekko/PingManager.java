@@ -2,6 +2,7 @@ package com.ldm.infrastructure.adapter.out.pekko;
 
 import com.ldm.application.service.ClusterLatencyCache;
 import com.ldm.infrastructure.adapter.in.pekko.PingService;
+import com.ldm.infrastructure.serialization.protobuf.PingPong;
 import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.Behavior;
 import org.apache.pekko.actor.typed.javadsl.Behaviors;
@@ -9,6 +10,7 @@ import org.apache.pekko.actor.typed.receptionist.Receptionist;
 
 import java.time.Duration;
 import java.util.Set;
+import java.util.UUID;
 
 public class PingManager {
     public interface Command {}
@@ -30,18 +32,31 @@ public class PingManager {
 
             return Behaviors.receive(Command.class)
                     .onMessage(Tick.class, tick -> {
+                        context.getLog().debug("Retrieving PingServices...");
                         context.getSystem().receptionist().tell(
                                 Receptionist.find(PingService.PING_SERVICE_KEY, listingResponseAdapter)
                         );
                         return Behaviors.same();
                     })
                     .onMessage(ListingResponse.class, response -> {
-                        Set<ActorRef<PingProtocol.Ping>> services = response.listing.getServiceInstances(PingService.PING_SERVICE_KEY);
+                        Set<ActorRef<PingPong.Ping>> services = response.listing.getServiceInstances(PingService.PING_SERVICE_KEY);
                         services.forEach(service -> {
-                            // Generate a unique ID or use an existing ID for each service instance
-//                            String ldmId = service.path().address().toString();
-                            context.spawnAnonymous(Pinger.create(service, ldmId, maxPingRetry, cache));
+//                            context.getLog().debug("Creating pinger for each received PingService...");
+//                            ActorRef<Pinger.Command> pinger = context.spawnAnonymous(
+//                                    Pinger.create(service, ldmId, maxPingRetry, cache));
+
+
+                            // Create the Pinger and log its reference
+                            ActorRef<Pinger.Command> pinger = context.spawn(
+                                    Pinger.create(service, ldmId, maxPingRetry, cache),
+                                    "pinger-" + service.path().name() +"-" + UUID.randomUUID() // Assign unique name for clarity
+                            );
+//                            context.getLog().info("Created Pinger ActorRef: {}", pinger);
+//
+//                            // Pass the Pinger reference explicitly when initializing
+//                            pinger.tell(new Pinger.Initialize(pinger));
                         });
+
                         return Behaviors.same();
                     })
                     .build();
