@@ -1,22 +1,29 @@
 package com.ldm.infrastructure.adapter.in.pekko;
 
-import com.ldm.infrastructure.adapter.out.pekko.PingProtocol;
+import com.ldm.infrastructure.serialization.protobuf.PingPong;
+import org.apache.pekko.actor.typed.ActorRef;
+import org.apache.pekko.actor.typed.ActorRefResolver;
 import org.apache.pekko.actor.typed.Behavior;
 import org.apache.pekko.actor.typed.javadsl.Behaviors;
 import org.apache.pekko.actor.typed.receptionist.Receptionist;
 import org.apache.pekko.actor.typed.receptionist.ServiceKey;
 
 public class PingService {
-    public static final ServiceKey<PingProtocol.Ping> PING_SERVICE_KEY =
-            ServiceKey.create(PingProtocol.Ping.class, "PingService");
+    public static final ServiceKey<PingPong.Ping> PING_SERVICE_KEY =
+            ServiceKey.create(PingPong.Ping.class, "PingService");
 
-    public static Behavior<PingProtocol.Ping> create(String ldmId) {
+    public static Behavior<PingPong.Ping> create(String ldmId) {
         return Behaviors.setup(context -> {
             context.getSystem().receptionist().tell(Receptionist.register(PING_SERVICE_KEY, context.getSelf()));
-            return Behaviors.receive(PingProtocol.Ping.class)
-                    .onMessage(PingProtocol.Ping.class, message -> {
-                        context.getLog().info("Ping received from {}", message.getReplyTo());
-                        message.getReplyTo().tell(new PingProtocol.Pong(ldmId));
+            return Behaviors.receive(PingPong.Ping.class)
+                    .onMessage(PingPong.Ping.class, message -> {
+                        ActorRefResolver actorRefResolver = ActorRefResolver.get(context.getSystem());
+                        ActorRef<Object> replyTo = actorRefResolver.resolveActorRef(message.getReplyTo());
+                        PingPong.Pong pong = PingPong.Pong.newBuilder().setLdmId(ldmId).setStartTime(message.getStartTime()).build();
+
+                        context.getLog().info("Ping received and sending back Pong {}", replyTo);
+                        replyTo.tell(pong);
+
                         return Behaviors.same();
                     })
                     .build();

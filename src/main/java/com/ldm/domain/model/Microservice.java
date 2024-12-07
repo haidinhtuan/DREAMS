@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @JsonDeserialize(using = MicroserviceDeserializer.class)
 @JsonSerialize(using = MicroserviceSerializer.class)
+@Slf4j
 public class Microservice {
 
     @JsonProperty("id")
@@ -47,8 +49,6 @@ public class Microservice {
 
     private double cpuUsage;  // CPU usage as a percentage
     private double memoryUsage;  // Memory usage in MB
-
-
 
 
     // Adds the amount of data exchanged with another microservice
@@ -98,7 +98,6 @@ public class Microservice {
                 .mapToDouble(Map.Entry::getValue)
                 .sum();
     }
-
 
 
     @JsonIgnore// Method to return the K8sCluster with the highest total affinity and the total affinity value

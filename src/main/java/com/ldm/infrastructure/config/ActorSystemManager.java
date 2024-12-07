@@ -4,9 +4,11 @@ import com.ldm.application.service.ClusterLatencyCache;
 import com.ldm.application.service.DomainManager;
 import com.ldm.infrastructure.adapter.in.pekko.ClusterMembershipSync;
 import com.ldm.infrastructure.adapter.in.pekko.MigrationProposalVoter;
+import com.ldm.infrastructure.adapter.in.pekko.PingService;
 import com.ldm.infrastructure.adapter.out.pekko.PingManager;
 import com.ldm.infrastructure.adapter.out.pekko.QoSImprovementSuggester;
 import com.ldm.infrastructure.mapper.MigrationMapper;
+import com.ldm.infrastructure.serialization.protobuf.PingPong;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.inject.Singleton;
@@ -24,11 +26,14 @@ import org.apache.ratis.client.RaftClient;
 @Slf4j
 public class ActorSystemManager {
 
-    public interface Command {}
+    public interface Command {
+    }
 
-    public record StartQoSImprovementSuggester(RaftClient raftClient, DomainManager domainManager) implements Command {}
+    public record StartQoSImprovementSuggester(RaftClient raftClient, DomainManager domainManager) implements Command {
+    }
 
-    public static class StopQoSImprovementSuggester implements Command {}
+    public static class StopQoSImprovementSuggester implements Command {
+    }
 
     private ActorSystem<Command> actorSystem;
     private final LdmConfig ldmConfig;
@@ -50,8 +55,13 @@ public class ActorSystemManager {
     private Behavior<Command> rootBehavior() {
         return Behaviors.setup(context -> {
             // Initialize PingManager actor
+            ActorRef<PingPong.Ping> pingService = context.spawn(
+                    PingService.create(ldmConfig.id()),
+                    "PingService"
+            );
+
             ActorRef<PingManager.Command> pingManager = context.spawn(
-                    PingManager.create(ldmConfig.id(), ldmConfig.latenciesCheck().interval(), ldmConfig.latenciesCheck().maxRetry(), clusterLatencyCache),
+                    PingManager.create(ldmConfig.id(), ldmConfig.latenciesCheck().interval(), ldmConfig.latenciesCheck().maxRetry(), clusterLatencyCache, pingService),
                     "PingManager"
             );
 
@@ -102,7 +112,7 @@ public class ActorSystemManager {
 
     @PreDestroy
     void onStop() {
-        if(actorSystem != null) {
+        if (actorSystem != null) {
             actorSystem.terminate();
             log.info("ActorSystem terminated.");
         }

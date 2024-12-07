@@ -6,5 +6,5 @@ import io.smallrye.config.ConfigMapping;
 public interface TestDataConfig {
 
     String file();
-    
+
 }

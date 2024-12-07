@@ -22,6 +22,7 @@ public class DomainManager {
 
     public MigrationCandidate findMigrationCandidate() {
         log.info("****** Start running QoS Improvement Proposal!******");
+        log.info("Microservices Cache before proposal: {}", microservicesCache);
         MigrationCandidate bestMigrationCandidate = this.qosOptimizationService.findBestMigrationCandidate();
 
         if(bestMigrationCandidate==null) {

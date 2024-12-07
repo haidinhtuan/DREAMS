@@ -2,6 +2,8 @@ package com.ldm.infrastructure.adapter.in.ratis;
 
 import com.ldm.application.port.ConsensusHandler;
 import com.ldm.application.port.MigrationService;
+import com.ldm.application.service.MicroservicesCache;
+import com.ldm.domain.model.Microservice;
 import com.ldm.domain.model.MigrationAction;
 import com.ldm.infrastructure.mapper.MigrationMapper;
 import com.ldm.infrastructure.serialization.protobuf.MigrationActionOuterClass;
@@ -33,6 +35,8 @@ public class RaftStateMachine extends BaseStateMachine {
 
     private final MigrationMapper migrationMapper;
 
+    private final MicroservicesCache microservicesCache;
+
     /**
      * Processes migration actions
      */
@@ -58,6 +62,24 @@ public class RaftStateMachine extends BaseStateMachine {
             if (trx.getServerRole() == RaftProtos.RaftPeerRole.LEADER) {
                 log.info("This LDM is currently the leader!");
                 this.migrationService.executeMigration(migrationAction);
+                Microservice migratedMicroservice = new Microservice(migrationAction.microservice().getId(), migrationAction.microservice().getName()
+                        , migrationAction.microservice().isNonMigratable(), migrationAction.targetK8sCluster(), migrationAction.microservice().getAffinities(),
+                        migrationAction.microservice().getDataExchangedWithServices(), migrationAction.microservice().getCpuUsage(), migrationAction.microservice().getMemoryUsage());
+
+                log.info("Updating the microservices cache after migrationAction: {}", migrationAction);
+                this.microservicesCache.cacheMicroservice(migratedMicroservice.getId(), migratedMicroservice);
+
+                this.microservicesCache.getAllMicroservices().forEach(microservice -> {
+                    Double affinity = microservice.getAffinities().get(migratedMicroservice);
+                    if (affinity != null) {
+                        // Update microservice on affinity map with correct key-value pair
+                        microservice.getAffinities().put(migratedMicroservice, affinity);
+                        this.microservicesCache.cacheMicroservice(microservice.getId(), microservice);
+                        log.debug("Updated affinity map of microservice {} with migrated microservice {}", microservice, migratedMicroservice);
+                    }
+                });
+
+                log.info("Microservices Cache AFTER proposal: {}", microservicesCache);
 
                 return this.getServer()
                         .thenCompose(raftServer -> handleMigrationAction(raftServer, protoMigrationAction));

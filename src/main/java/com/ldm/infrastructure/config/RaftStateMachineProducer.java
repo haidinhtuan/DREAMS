@@ -3,6 +3,7 @@ package com.ldm.infrastructure.config;
 import com.ldm.application.port.MigrationService;
 import com.ldm.application.service.DefaultConsensusHandler;
 import com.ldm.application.service.DomainManager;
+import com.ldm.application.service.MicroservicesCache;
 import com.ldm.infrastructure.adapter.in.ratis.RaftLeaderChangeHandler;
 import com.ldm.infrastructure.adapter.in.ratis.RaftStateMachine;
 import com.ldm.infrastructure.mapper.MigrationMapper;
@@ -29,6 +30,9 @@ public class RaftStateMachineProducer {
     @Inject
     ActorSystemManager actorSystemManager;
 
+    @Inject
+    MicroservicesCache microservicesCache;
+
     @ConfigProperty(name = "leader.election.mode")
     LeaderElectionModeEnum leaderElectionMode;
 
@@ -46,6 +50,6 @@ public class RaftStateMachineProducer {
                 new DefaultConsensusHandler(domainManager),
                 migrationService,
                 raftLeaderChangeHandler,
-                migrationMapper);
+                migrationMapper, microservicesCache);
     }
 }
