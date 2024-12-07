@@ -55,14 +55,14 @@ public class ActorSystemManager {
     private Behavior<Command> rootBehavior() {
         return Behaviors.setup(context -> {
             // Initialize PingManager actor
-            ActorRef<PingManager.Command> pingManager = context.spawn(
-                    PingManager.create(ldmConfig.id(), ldmConfig.latenciesCheck().interval(), ldmConfig.latenciesCheck().maxRetry(), clusterLatencyCache),
-                    "PingManager"
-            );
-
             ActorRef<PingPong.Ping> pingService = context.spawn(
                     PingService.create(ldmConfig.id()),
                     "PingService"
+            );
+
+            ActorRef<PingManager.Command> pingManager = context.spawn(
+                    PingManager.create(ldmConfig.id(), ldmConfig.latenciesCheck().interval(), ldmConfig.latenciesCheck().maxRetry(), clusterLatencyCache, pingService),
+                    "PingManager"
             );
 
             // Initialize ClusterMembershipSync actor
