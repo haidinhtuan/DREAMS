@@ -6,8 +6,19 @@ quarkus:
     platforms: linux/arm64
   log:
     category:
-      "io.quarkus.runtime.configuration":
-        level: DEBUG
+      "com.ldm":
+        level: ${LOG_LEVEL:DEBUG}
+#      "io.quarkus.runtime.configuration":
+#        level: ${LOG_LEVEL:INFO}
+      "org.apache.pekko":  # Enable debug logs for Apache Pekko
+        level: ${LOG_LEVEL:DEBUG}
+#      "org.apache.pekko.receptionist": ${LOG_LEVEL:DEBUG}
+#      "org.apache.pekko.actor":  # Debug logs for Pekko actor components
+#        level: ${LOG_LEVEL:INFO}
+#      "org.apache.pekko.remote":  # Debug logs for Pekko remote communication
+#        level: ${LOG_LEVEL:INFO}
+#      "org.apache.pekko.cluster":  # Debug logs for Pekko cluster components
+#        level: ${LOG_LEVEL:INFO}
   container-image:
     build: true
     push: false
