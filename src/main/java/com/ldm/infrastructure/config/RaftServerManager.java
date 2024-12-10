@@ -1,6 +1,5 @@
 package com.ldm.infrastructure.config;
 
-import com.ldm.infrastructure.adapter.in.ratis.RaftStateMachine;
 import io.quarkus.runtime.ShutdownEvent;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Singleton;
@@ -19,6 +18,7 @@ import org.apache.ratis.rpc.SupportedRpcType;
 import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.storage.RaftStorage;
+import org.apache.ratis.statemachine.StateMachine;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 import java.io.File;
@@ -43,7 +43,10 @@ public class RaftServerManager {
     private final LdmConfig ldmConfig;
     private final RaftClusterConfig raftClusterConfig;
 
-    private final RaftStateMachine raftStateMachine;
+//    private final MigrationMachine<LDMStateMachine> migrationMachine;
+
+    @Getter
+    private final ActorSystemManager actorSystemManager;
 
     void startRaftServer() {
         try {
@@ -76,7 +79,7 @@ public class RaftServerManager {
                 .setServerId(RaftPeerId.valueOf(ldmConfig.id()))
                 .setOption(startupOption)
                 .setGroup(raftGroup)
-                .setStateMachine(raftStateMachine)
+                .setStateMachine((StateMachine) actorSystemManager.getMigrationMachine())
                 .setProperties(buildRaftProperties(storageDir))
                 .build();
 

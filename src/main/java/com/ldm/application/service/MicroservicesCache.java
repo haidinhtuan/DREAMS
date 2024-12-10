@@ -62,21 +62,4 @@ public class MicroservicesCache {
                 .collect(Collectors.toList()));
     }
 }
-//        return cache.as(CaffeineCache.class)
-//                .keySet()
-//                .parallelStream()  // Use parallel stream for large datasets
-//                .map(microserviceId -> getMicroserviceById((String) microserviceId))
-//                .toList();
-//    }
-
-
-    /*
-            // Access the underlying Caffeine cache and call the asMap() method to get all cache entries
-        Map<Object, CompletableFuture<Object>> caffeineCacheMap = cache.as(CaffeineCache.class);
-
-        // Stream through the entries, resolve the CompletableFuture, and collect the Microservices
-        return caffeineCacheMap.values().stream()
-                .map(future -> (Microservice) future.join())  // Resolve the CompletableFuture
-                .collect(Collectors.toSet());  // Collect all microservices into a set
-     */
 

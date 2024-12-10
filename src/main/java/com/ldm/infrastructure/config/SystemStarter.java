@@ -14,14 +14,12 @@ public class SystemStarter {
 
     private final ClusterMonitoringService clusterMonitoringService;
     private final RaftServerManager raftServerManager;
-    private final ActorSystemManager actorSystemManager;
 
     public void onStart(@Observes StartupEvent event) {
         clusterMonitoringService.getMicroservicesFromCluster();
 
         raftServerManager.startRaftServer();
 
-//        actorSystemManager.init();
         log.info("Application fully started with @Observes StartupEvent");
     }
 }

@@ -1,5 +1,6 @@
 package com.ldm.infrastructure.adapter.in.ratis;
 
+import com.ldm.application.port.LeaderChangeHandler;
 import com.ldm.application.service.DomainManager;
 import com.ldm.infrastructure.config.ActorSystemManager;
 import com.ldm.shared.constants.LeaderElectionModeEnum;
@@ -18,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
 @Slf4j
-public class RaftLeaderChangeHandler {
+public class RaftLeaderChangeHandler implements LeaderChangeHandler<RaftGroupMemberId, RaftPeerId, RaftServer, RaftGroupId> {
 
     private final RaftClient raftClient;
     private final DomainManager domainManager;
@@ -32,7 +33,7 @@ public class RaftLeaderChangeHandler {
     @Setter
     private String defaultLeader;
 
-
+    @Override
     public void handleLeaderChangedEvent(RaftGroupMemberId groupMemberId, RaftPeerId newLeaderId) {
         if (newLeaderId.equals(groupMemberId.getPeerId())) {
             if (!isLeader) {
@@ -65,6 +66,7 @@ public class RaftLeaderChangeHandler {
         actorSystemManager.getActorSystem().tell(new ActorSystemManager.StopQoSImprovementSuggester());
     }
 
+    @Override
     public Uni<Void> triggerLeaderChange(
             RaftServer raftServer,
             RaftPeerId raftPeerId,
@@ -87,7 +89,7 @@ public class RaftLeaderChangeHandler {
     }
 
 
-    private CompletableFuture<Void> safeTransferLeadershipAsync(RaftServer raftServer, TransferLeadershipRequest request) {
+    public static CompletableFuture<Void> safeTransferLeadershipAsync(RaftServer raftServer, TransferLeadershipRequest request) {
         try {
             return raftServer
                     .transferLeadershipAsync(request) // Returns CompletableFuture<RaftClientReply>
@@ -108,5 +110,4 @@ public class RaftLeaderChangeHandler {
             return failedFuture;
         }
     }
-
 }

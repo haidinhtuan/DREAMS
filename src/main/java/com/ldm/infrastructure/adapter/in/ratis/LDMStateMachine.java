@@ -1,12 +1,15 @@
 package com.ldm.infrastructure.adapter.in.ratis;
 
 import com.ldm.application.port.ConsensusHandler;
+import com.ldm.application.port.LeaderChangeHandler;
+import com.ldm.application.port.MigrationMachine;
 import com.ldm.application.port.MigrationService;
 import com.ldm.application.service.MicroservicesCache;
 import com.ldm.domain.model.Microservice;
 import com.ldm.domain.model.MigrationAction;
 import com.ldm.infrastructure.mapper.MigrationMapper;
 import com.ldm.infrastructure.serialization.protobuf.MigrationActionOuterClass;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ratis.proto.RaftProtos;
@@ -26,12 +29,13 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RequiredArgsConstructor
-public class RaftStateMachine extends BaseStateMachine {
+public class LDMStateMachine extends BaseStateMachine implements MigrationMachine<LDMStateMachine> {
 
     private final ConsensusHandler consensusHandler;
     private final MigrationService migrationService;
 
-    private final RaftLeaderChangeHandler raftLeaderChangeHandler;
+    @Getter
+    private final LeaderChangeHandler<RaftGroupMemberId, RaftPeerId, RaftServer, RaftGroupId> leaderChangeHandler;
 
     private final MigrationMapper migrationMapper;
 
@@ -97,8 +101,9 @@ public class RaftStateMachine extends BaseStateMachine {
     }
 
     // Leader-specific logic extracted for clarity
-    private CompletableFuture<Message> handleMigrationAction(RaftServer raftServer, MigrationActionOuterClass.MigrationAction protoMigrationAction) {
-        return this.raftLeaderChangeHandler.triggerLeaderChange(raftServer, this.getId(), this.getGroupId())
+    @Override
+    public CompletableFuture handleMigrationAction(RaftServer raftServer, MigrationActionOuterClass.MigrationAction protoMigrationAction) {
+        return this.leaderChangeHandler.triggerLeaderChange(raftServer, this.getId(), this.getGroupId())
                 .map(unused -> {
                     ByteString successMessageBytes = ByteString.copyFromUtf8("<<Transaction applied successfully>> : ");
                     ByteString migrationActionBytes = ByteString.copyFrom(protoMigrationAction.toByteArray());
@@ -106,6 +111,11 @@ public class RaftStateMachine extends BaseStateMachine {
                 })
                 .convert().toCompletionStage()
                 .toCompletableFuture();
+    }
+
+    @Override
+    public LDMStateMachine getLDMStateMachine() {
+        return this;
     }
 
     /**
@@ -116,7 +126,7 @@ public class RaftStateMachine extends BaseStateMachine {
         log.info("Leader change detected: New leader is {}", newLeaderId);
         try {
             // Delegate the handling of the leader change to RaftLeaderChangedHandler
-            raftLeaderChangeHandler.handleLeaderChangedEvent(groupMemberId, newLeaderId);
+            leaderChangeHandler.handleLeaderChangedEvent(groupMemberId, newLeaderId);
             log.info("Leader change handled successfully by RaftLeaderChangedHandler");
         } catch (Exception e) {
             log.error("Error handling leader change to new leader: {}", newLeaderId, e);

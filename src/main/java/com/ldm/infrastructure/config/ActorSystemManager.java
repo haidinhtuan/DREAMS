@@ -1,18 +1,20 @@
 package com.ldm.infrastructure.config;
 
+import com.ldm.application.port.MigrationMachine;
 import com.ldm.application.service.ClusterLatencyCache;
 import com.ldm.application.service.DomainManager;
 import com.ldm.infrastructure.adapter.in.pekko.ClusterMembershipSync;
 import com.ldm.infrastructure.adapter.in.pekko.MigrationProposalVoter;
 import com.ldm.infrastructure.adapter.in.pekko.PingService;
+import com.ldm.infrastructure.adapter.in.ratis.LDMStateMachine;
 import com.ldm.infrastructure.adapter.out.pekko.PingManager;
 import com.ldm.infrastructure.adapter.out.pekko.QoSImprovementSuggester;
 import com.ldm.infrastructure.mapper.MigrationMapper;
 import com.ldm.infrastructure.serialization.protobuf.PingPong;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.inject.Singleton;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.ActorSystem;
@@ -21,7 +23,6 @@ import org.apache.pekko.actor.typed.javadsl.Behaviors;
 import org.apache.pekko.cluster.ClusterEvent;
 import org.apache.ratis.client.RaftClient;
 
-@Singleton
 @RequiredArgsConstructor
 @Slf4j
 public class ActorSystemManager {
@@ -44,9 +45,14 @@ public class ActorSystemManager {
 
     private final MigrationMapper migrationMapper;
 
+
+    @Getter
+    @Setter
+    private MigrationMachine<LDMStateMachine> migrationMachine;
+
+
     private ActorRef<QoSImprovementSuggester.QoSImproveSuggestionProtocol> qosImprovementSuggesterRef = null;
 
-    @PostConstruct
     void init() {
         log.info(">> Creating the ActorSystem (ClusterSysten)...");
         actorSystem = ActorSystem.create(rootBehavior(), "ClusterSystem");
@@ -81,11 +87,11 @@ public class ActorSystemManager {
             return Behaviors.receive(Command.class)
                     .onMessage(StartQoSImprovementSuggester.class, msg -> {
                         if (qosImprovementSuggesterRef == null) {
-                            // Spawn QoSImprovementSuggester actor
-                            qosImprovementSuggesterRef = context.spawn(
-                                    QoSImprovementSuggester.create(msg.raftClient, msg.domainManager, ldmConfig.proposal().interval(), ldmConfig.proposal().requestTimeout(), migrationProposalVoter, migrationMapper),
-                                    "QoSImprovementSuggester"
-                            );
+                                // Spawn QoSImprovementSuggester actor
+                                qosImprovementSuggesterRef = context.spawn(
+                                        QoSImprovementSuggester.create(msg.raftClient, msg.domainManager, ldmConfig.proposal().interval(), ldmConfig.proposal().requestTimeout(), migrationProposalVoter, migrationMapper, migrationMachine),
+                                        "QoSImprovementSuggester"
+                                );
 
                             log.info("## ActorSystemsManager: QoSImprovementSuggester actor created. ##");
                         } else {
@@ -122,4 +128,5 @@ public class ActorSystemManager {
     public ActorSystem<Command> getActorSystem() {
         return actorSystem;
     }
+
 }

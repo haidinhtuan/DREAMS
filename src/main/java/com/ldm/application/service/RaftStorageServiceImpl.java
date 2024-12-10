@@ -3,12 +3,14 @@ package com.ldm.application.service;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.ldm.application.port.RaftStorageService;
 import com.ldm.domain.model.MigrationAction;
-import com.ldm.infrastructure.adapter.in.ratis.RaftStateMachine;
+import com.ldm.infrastructure.adapter.in.ratis.LDMStateMachine;
+import com.ldm.infrastructure.config.ActorSystemManager;
 import com.ldm.infrastructure.mapper.MigrationMapper;
 import com.ldm.infrastructure.serialization.protobuf.MigrationActionOuterClass;
 import io.smallrye.mutiny.Multi;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ratis.proto.RaftProtos;
@@ -20,7 +22,8 @@ import java.util.List;
 @RequiredArgsConstructor(onConstructor_ = @Inject)
 public class RaftStorageServiceImpl implements RaftStorageService {
 
-    private final RaftStateMachine raftStateMachine;
+    @Getter
+    private final ActorSystemManager actorSystemManager;
 
     private final MigrationMapper migrationMapper;
 
@@ -32,8 +35,9 @@ public class RaftStorageServiceImpl implements RaftStorageService {
    @Override
     public Multi<MigrationAction> getApprovedMigrationActions() {
         try {
+            LDMStateMachine ldmStateMachine = this.actorSystemManager.getMigrationMachine().getLDMStateMachine();
             // Retrieve all Raft log entries
-            List<RaftProtos.LogEntryProto> logEntryProtos = this.raftStateMachine.readAllRaftLogEntries();
+            List<RaftProtos.LogEntryProto> logEntryProtos = ldmStateMachine.readAllRaftLogEntries();
 
             // Transform log entries into domain model objects
             return Multi.createFrom().iterable(logEntryProtos)
