@@ -75,5 +75,5 @@ testdata:
 
 leader:
   election:
-    mode: ${LEADER_ELECTION_MODE:TESTING}
+    mode: ${LEADER_ELECTION_MODE:DEFAULT}
     default-leader: ${DEFAULT_LEADER:54f34e52-b466-49f8-b525-230cd107148b}

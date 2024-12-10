@@ -2,7 +2,7 @@ version: '3.8'
 services:
 #  ldm1:
 ##    build: .
-#    image: tienhngnguyen/local-domain-manager:1.0.9-SNAPSHOT
+#    image: tienhngnguyen/local-domain-manager:1.1.0-SNAPSHOT
 #    ports:
 #      - '6000:6000' # Pekko
 #      - '8080:8080' # Quarkus
@@ -51,7 +51,7 @@ services:
 
   ldm2:
 #    build: .
-    image: tienhngnguyen/local-domain-manager:1.0.9-SNAPSHOT
+    image: tienhngnguyen/local-domain-manager:1.1.0-SNAPSHOT
     ports:
       - '6001:6001' # Pekko
       - '8081:8081' # Quarkus
@@ -96,7 +96,7 @@ services:
 #      - CLUSTER_SEED_NODE=pekko://ClusterSystem@ldm1:6000
       - PEKKO_PORT=6001
       - CLUSTER_SEED_NODE=pekko://ClusterSystem@host.docker.internal:6000
-      - LEADER_ELECTION_MODE=TESTING
+      - LEADER_ELECTION_MODE=DEFAULT
       - DEFAULT_LEADER=54f34e52-b466-49f8-b525-230cd107148b
       - LOG_LEVEL=INFO
     volumes:
@@ -107,7 +107,7 @@ services:
 
   ldm3:
 #    build: .
-    image: tienhngnguyen/local-domain-manager:1.0.9-SNAPSHOT
+    image: tienhngnguyen/local-domain-manager:1.1.0-SNAPSHOT
     ports:
       - '6002:6002' # Pekko
       - '8082:8082' # Quarkus
@@ -150,7 +150,7 @@ services:
       - CLUSTER_SEED_NODE=pekko://ClusterSystem@host.docker.internal:6000
 #      - CLUSTER_SEED_NODE=pekko://ClusterSystem@ldm1:6000
       - PEKKO_PORT=6002
-      - LEADER_ELECTION_MODE=TESTING
+      - LEADER_ELECTION_MODE=DEFAULT
       - DEFAULT_LEADER=54f34e52-b466-49f8-b525-230cd107148b
       - LOG_LEVEL=INFO
     volumes:
