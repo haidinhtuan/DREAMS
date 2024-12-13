@@ -2,10 +2,12 @@ package com.ldm.application.service;
 
 import io.quarkus.cache.*;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.CompletableFuture;
 
 @ApplicationScoped
+@Slf4j
 public class ClusterLatencyCache {
 
     @CacheName("ldm-service-latencies")
@@ -26,5 +28,21 @@ public class ClusterLatencyCache {
     @CacheInvalidate(cacheName = "ldm-service-latencies")
     public void removeMicroservicePlacement(@CacheKey String microserviceId) {
         cache.invalidate(microserviceId).await().indefinitely();
+    }
+
+    public void outputCache() {
+        CaffeineCache caffeineCache = cache.as(CaffeineCache.class);
+
+        log.debug("Current Microservices Cache: ");
+
+        // Get all keys from the cache
+        caffeineCache.keySet().forEach(key -> {
+            // For each key, retrieve the value
+            cache.get(key, k -> null)
+                    .subscribe().with(
+                            value -> log.debug(key + " -> " + value),
+                            throwable -> log.error("Error accessing cache for key: " + key, throwable)
+                    );
+        });
     }
 }

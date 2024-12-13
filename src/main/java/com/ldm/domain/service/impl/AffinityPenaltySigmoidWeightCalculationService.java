@@ -4,6 +4,7 @@ import com.ldm.domain.service.AffinityPenaltyWeightCalculationService;
 import com.ldm.infrastructure.config.LdmConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service implementation that calculates the weighted affinity penalty using a sigmoid function. This function
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
  */
 @ApplicationScoped
 @RequiredArgsConstructor
+@Slf4j
 public class AffinityPenaltySigmoidWeightCalculationService implements AffinityPenaltyWeightCalculationService {
 
     private final LdmConfig ldmConfig;
@@ -26,6 +28,10 @@ public class AffinityPenaltySigmoidWeightCalculationService implements AffinityP
      */
     @Override
     public double calculateAffinityPenaltyWeight(double totalAffinityImpact) {
+        log.debug("Calculating calculateAffinityPenaltyWeight...");
+        log.debug("totalAffinityImpact: -" + totalAffinityImpact);
+        log.debug("scalingFactor: -" + ldmConfig.voting().scalingFactor());
+
         // Use a steeper function to apply higher penalties for large affinities and far distances (high latencies)
         return 1.0 / (1 + Math.exp(-totalAffinityImpact / ldmConfig.voting().scalingFactor()));  // Steeper decay based on affinity impact
     }

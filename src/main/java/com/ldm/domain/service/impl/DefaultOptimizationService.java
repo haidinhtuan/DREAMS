@@ -63,7 +63,7 @@ public class DefaultOptimizationService implements QoSOptimizationService {
      */
     public MigrationCandidate findBestMigrationCandidate() {
         // Log the start of the method
-        log.info("Finding best migration candidate among microservices in the current cluster.");
+        log.debug("Finding best migration candidate among microservices in the current cluster.");
 
         Microservice bestCandidate = null;
         K8sCluster bestK8sClusterForCandidate = null;
@@ -97,7 +97,7 @@ public class DefaultOptimizationService implements QoSOptimizationService {
 
             // Track the microservice with the highest QoS improvement
             if (potentialQoSImprovement > highestQoSImprovement) {
-                log.info("New best candidate found: Microservice {} with QoS improvement: {}",
+                log.debug("New best candidate found: Microservice {} with QoS improvement: {}",
                         microservice.getId(), potentialQoSImprovement);
                 highestQoSImprovement = potentialQoSImprovement;
                 bestCandidate = microservice;
@@ -107,12 +107,12 @@ public class DefaultOptimizationService implements QoSOptimizationService {
 
         // Log if no candidate was found
         if (bestCandidate == null) {
-            log.warn("No suitable migration candidate found in the current cluster.");
+            log.debug("No suitable migration candidate found in the current cluster.");
             return null;
         }
 
         // Log the best candidate that is being returned
-        log.info("Best migration candidate: Microservice {} with QoS improvement: {}",
+        log.debug("_____[CANDIDATE FOUND]______Best migration candidate: Microservice {} with QoS improvement score: {}",
                 bestCandidate.getId(), highestQoSImprovement);
 
         // Return the best candidate with the highest QoS improvement
@@ -140,16 +140,26 @@ public class DefaultOptimizationService implements QoSOptimizationService {
      * @return {@code true} if the LDM votes in favor of the migration, {@code false} otherwise.
      */
     public boolean shouldApproveMigrationProposal(Microservice migratingMicroservice, String targetLdmId) {
+        // Always approve migration proposal to its own cluster since it benefits local microservices
+        if(targetLdmId.equalsIgnoreCase(this.ldmConfig.id())) {
+            log.debug("LDM with ID " + ldmConfig.id() + " votes YES for migration to its own cluster.");
+            return true;
+        }
+
         List<Microservice> microservices = this.microservicesCache.getAllMicroservices();
+        log.debug("Cached microservices: {}", microservices);
 
         long latencyToSourceCluster = clusterLatencyCache.getLatencyToLDMById(migratingMicroservice.getK8sCluster().getId());
+        log.debug("latencyToSourceCluster: "+ latencyToSourceCluster+ "ms");
         long latencyToTargetCluster = clusterLatencyCache.getLatencyToLDMById(targetLdmId);
+        log.debug("latencyToTargetCluster: "+ latencyToTargetCluster+ "ms");
 
         // Compare the latency to source and target cluster to evaluate migration impact
         // positive value would result in a positive impact for the local microservices since the latency will decrease or stay the same
         // negative value would result in a negative impact for the local microservices since the latency will increase
 //        int latencyDifference = latencyToSourceCluster - latencyToTargetCluster;
         double totalAffinityImpact = affinityCalculationService.calculateTotalAffinityImpact(migratingMicroservice, microservices);
+        log.debug("Total Affinity Impact for migration candidate {}: " + totalAffinityImpact, migratingMicroservice);
 
         // Special case: If the affinity impact is low, ignore the latency penalty
         if (totalAffinityImpact == 0) {
@@ -159,22 +169,26 @@ public class DefaultOptimizationService implements QoSOptimizationService {
 
         // Normalize the affinity impact (assuming maxAffinityValue is known)
         double normalizedAffinityImpact = totalAffinityImpact / maxAffinityValue;
+        log.debug("normalizedAffinityImpact: " + normalizedAffinityImpact);
 
         // Calculate latency difference
         double latencyDifference = latencyToTargetCluster - latencyToSourceCluster;
+        log.debug("latencyDifference: " + latencyDifference);
 
         // Calculate the affinity penalty weight using the sigmoid function
         double affinityPenaltyWeight = affinityPenaltyWeightCalculationService.calculateAffinityPenaltyWeight(normalizedAffinityImpact);
+        log.debug("affinityPenaltyWeight: " + affinityPenaltyWeight);
 
         // Apply the affinity penalty weight to the latency difference
         double scaledLatencyPenalty = (latencyDifference / maxLatencyValue) * affinityPenaltyWeight;
+        log.debug("scaledLatencyPenalty: " + scaledLatencyPenalty);
 
         // Voting logic: Allow small negative impact within a defined threshold
         if (scaledLatencyPenalty < ldmConfig.voting().threshold()) {
-            log.info("LDM with ID " + ldmConfig.id() + " votes YES for migration.");
+            log.info("LDM with ID " + ldmConfig.id() + " votes YES for migration candidate: {}", migratingMicroservice);
             return true;
         } else {
-            log.info("LDM with ID " + ldmConfig.id() + " votes NO for migration.");
+            log.info("LDM with ID " + ldmConfig.id() + " votes NO for migration for migration candidate: {}", migratingMicroservice);
             return false;
         }
     }

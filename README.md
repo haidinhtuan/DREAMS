@@ -70,12 +70,11 @@ Make sure to add the following entries on the `hosts` file if you want to run a 
 
 ## Compiling Protobuf files
 
-Run the following command to generate the protoc command:
+Run the following command to generate the protoc command from the project root to generate the protobuf files:
 ```
-protoc -I=. --java_out=. migration_action.proto
-protoc -I=. --java_out=. ping_pong.proto
 protoc -I=src/main/proto/com/ldm/infrastructure/serialization --java_out=src/main/java src/main/proto/com/ldm/infrastructure/serialization/migration_action.proto
 protoc -I=src/main/proto/com/ldm/infrastructure/serialization --java_out=src/main/java src/main/proto/com/ldm/infrastructure/serialization/ping_pong.proto
+protoc -I=src/main/proto/com/ldm/infrastructure/serialization --java_out=src/main/java src/main/proto/com/ldm/infrastructure/serialization/evaluate_migration_proposal.proto
 ```
 
 
@@ -85,6 +84,11 @@ The leader change has to be triggered on the current leader, e.g.:
 http://localhost:8080/api/ratis/trigger-leader-change/54f34e52-b466-49f8-b525-230cd107148b
 http://localhost:8081/api/ratis/trigger-leader-change/54f34e52-b466-49f8-b525-230cd107148b
 http://localhost:8082/api/ratis/trigger-leader-change/54f34e52-b466-49f8-b525-230cd107148b
+```
+
+# REST APIs to read from the Raft Storage
+```
+http://localhost:8080/api/migrations
 ```
 
 # Troubleshooting

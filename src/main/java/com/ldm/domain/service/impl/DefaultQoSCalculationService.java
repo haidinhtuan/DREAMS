@@ -20,7 +20,7 @@ public class DefaultQoSCalculationService implements QoSCalculationService  {
 
     public Map.Entry<K8sCluster, Double> calculatePotentialQoSImprovement(Microservice microservice) {
         // Log start of the method and the microservice being analyzed
-        log.info("Calculating potential QoS improvement for Microservice: {}", microservice.getId());
+        log.debug("Calculating potential QoS improvement for Microservice: {}", microservice.getId());
 
         Map<K8sCluster, Double> totalAffinityPerCluster = microservice.getTotalAffinityPerCluster();
 
@@ -57,20 +57,24 @@ public class DefaultQoSCalculationService implements QoSCalculationService  {
             return Map.entry(microservice.getK8sCluster(), 0.0); // No cluster found
         }
 
-        log.info("Highest affinity cluster: {} with score: {}", highestAffinityCluster.getId(), highestAffinityScore);
+        log.debug("Highest affinity cluster: {} with score: {}", highestAffinityCluster.getId(), highestAffinityScore);
         assert localCluster != null;
-        log.info("Local cluster: {} with score: {}", localCluster.getId(), localAffinityScore);
+        log.debug("Local cluster: {} with score: {}", localCluster.getId(), localAffinityScore);
 
         // If the highest affinity score is not greater than the local affinity, no improvement
         if (highestAffinityScore <= localAffinityScore) {
-            log.info("No QoS improvement possible for Microservice: {}. Highest affinity score: {} is not greater than local affinity score: {}",
+            log.debug("No QoS improvement possible for Microservice: {}. Highest affinity score: {} is not greater than local affinity score: {}",
                     microservice.getId(), highestAffinityScore, localAffinityScore);
             return Map.entry(microservice.getK8sCluster(), 0.0);
         }
 
         // Retrieve latency to the highest affinity cluster
         long latencyToHighestAffinityCluster = this.clusterLatencyCache.getLatencyToLDMById(highestAffinityCluster.getId());
-        log.info("Latency to highest affinity cluster {} is {} ms", highestAffinityCluster.getId(), latencyToHighestAffinityCluster);
+        log.debug(">> Retrieved Value of latencyToHighestAffinityCluster: " + latencyToHighestAffinityCluster);
+
+        if(latencyToHighestAffinityCluster==0) log.warn("VALUE of latencyToHighestAffinityCluster might be incorrect since the latency can't be 0!!");
+
+        log.debug("Latency to highest affinity cluster {} is {} ms", highestAffinityCluster.getId(), latencyToHighestAffinityCluster);
 
         // Calculate latency penalty
         double latencyPenalty = latencyPenaltyCalculationService.getLatencyPenalty(localAffinityScore, highestAffinityScore, latencyToHighestAffinityCluster);
@@ -79,7 +83,7 @@ public class DefaultQoSCalculationService implements QoSCalculationService  {
 
         // Total QoS improvement calculation
         double qosImprovement = (highestAffinityScore - localAffinityScore) - latencyPenalty;
-        log.info("Calculated QoS improvement for Microservice: {} is: {}", microservice.getId(), qosImprovement);
+        log.debug("Calculated QoS improvement for Microservice: {} is: {}", microservice.getId(), qosImprovement);
 
         return Map.entry(highestAffinityCluster, qosImprovement);
     }

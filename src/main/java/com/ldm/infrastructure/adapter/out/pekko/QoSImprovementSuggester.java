@@ -3,14 +3,17 @@ package com.ldm.infrastructure.adapter.out.pekko;
 import com.ldm.application.port.LeaderChangeHandler;
 import com.ldm.application.port.MigrationMachine;
 import com.ldm.application.service.DomainManager;
+import com.ldm.domain.model.Microservice;
 import com.ldm.domain.model.MigrationAction;
 import com.ldm.domain.model.MigrationCandidate;
 import com.ldm.infrastructure.adapter.in.pekko.MigrationProposalVoter;
 import com.ldm.infrastructure.adapter.in.ratis.LDMStateMachine;
 import com.ldm.infrastructure.mapper.MigrationMapper;
+import com.ldm.infrastructure.serialization.protobuf.EvaluateMigrationProposalOuterClass;
 import com.ldm.infrastructure.serialization.protobuf.MigrationActionOuterClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pekko.actor.typed.ActorRef;
+import org.apache.pekko.actor.typed.ActorRefResolver;
 import org.apache.pekko.actor.typed.Behavior;
 import org.apache.pekko.actor.typed.javadsl.ActorContext;
 import org.apache.pekko.actor.typed.javadsl.AskPattern;
@@ -28,6 +31,7 @@ import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
 
 import java.io.Serializable;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -62,7 +66,7 @@ public class QoSImprovementSuggester {
             DomainManager domainManager,
             int interval,
             int timeoutSeconds,
-            ActorRef<MigrationProposalVoter.VotingProtocol> localVoterRef,
+            ActorRef<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal> localVoterRef,
             MigrationMapper migrationMapper,
             MigrationMachine<LDMStateMachine> migrationMachine
     ) {
@@ -81,8 +85,11 @@ public class QoSImprovementSuggester {
 
             return Behaviors.receive(QoSImproveSuggestionProtocol.class)
                     .onMessage(RunQoSImprovement.class, message -> {
-                        context.getLog().info("Executing QoS Improvement Task");
-
+                        context.getLog().info("**************************************************************************************");
+                        context.getLog().info("**************************************************************************************");
+                        context.getLog().info("++++++++++++++++++++++++++++Executing QoS Improvement Task++++++++++++++++++++++++++++");
+                        context.getLog().info("**************************************************************************************");
+                        context.getLog().info("**************************************************************************************");
 
                         discoverAndShutdownSuggesters(context, TIMEOUT_DURATION, listingResponseAdapter)
                                 .thenRun(() -> handleQoSImprovement(
@@ -154,7 +161,7 @@ public class QoSImprovementSuggester {
             ActorContext<QoSImproveSuggestionProtocol> context,
             DomainManager domainManager,
             RaftClient raftClient,
-            ActorRef<MigrationProposalVoter.VotingProtocol> localVoterRef,
+            ActorRef<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal> localVoterRef,
             MigrationMapper migrationMapper,
             LeaderChangeHandler<RaftGroupMemberId, RaftPeerId, RaftServer, RaftGroupId> leaderChangeHandler,
             LDMStateMachine ldmStateMachine,
@@ -173,7 +180,7 @@ public class QoSImprovementSuggester {
                         listingResponseAdapter,
                         timeout
                 ),
-                () -> triggerLeaderChangeIfNoMigration(context, ldmStateMachine, leaderChangeHandler)
+                () -> triggerLeaderChangeIfNoMigration(ldmStateMachine, leaderChangeHandler)
         );
     }
 
@@ -181,15 +188,15 @@ public class QoSImprovementSuggester {
             ActorContext<QoSImproveSuggestionProtocol> context,
             MigrationCandidate migrationCandidate,
             RaftClient raftClient,
-            ActorRef<MigrationProposalVoter.VotingProtocol> localVoterRef,
+            ActorRef<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal> localVoterRef,
             MigrationMapper migrationMapper,
             ActorRef<Receptionist.Listing> listingResponseAdapter,
             Duration timeout
     ) {
         discoverInstances(context, timeout, MigrationProposalVoter.MIGRATION_PROPOSAL_VOTER_KEY, listingResponseAdapter)
                 .thenCompose(listing -> {
-                    Set<ActorRef<MigrationProposalVoter.VotingProtocol>> voters = listing.getServiceInstances(MigrationProposalVoter.MIGRATION_PROPOSAL_VOTER_KEY);
-                    Set<ActorRef<MigrationProposalVoter.VotingProtocol>> remoteVoters = voters.stream()
+                    Set<ActorRef<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal>> voters = listing.getServiceInstances(MigrationProposalVoter.MIGRATION_PROPOSAL_VOTER_KEY);
+                    Set<ActorRef<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal>> remoteVoters = voters.stream()
                             .filter(voter -> !voter.equals(localVoterRef))
                             .collect(Collectors.toSet());
 
@@ -197,8 +204,8 @@ public class QoSImprovementSuggester {
 
                     return CompletableFuture.allOf(votes.stream().map(CompletionStage::toCompletableFuture).toArray(CompletableFuture[]::new))
                             .thenAccept(v -> {
-                                if (shouldMigrate(votes, voters.size(), context)) {
-                                    sendMigrationAction(migrationCandidate, migrationMapper, raftClient, context);
+                                if (shouldMigrate(votes, remoteVoters.size())) {
+                                    sendMigrationAction(migrationCandidate, migrationMapper, raftClient);
                                 }
                             });
                 })
@@ -209,7 +216,6 @@ public class QoSImprovementSuggester {
     }
 
     private static void triggerLeaderChangeIfNoMigration(
-            ActorContext<QoSImproveSuggestionProtocol> context,
             LDMStateMachine LDMStateMachine,
             LeaderChangeHandler<RaftGroupMemberId, RaftPeerId, RaftServer, RaftGroupId> leaderChangeHandler
     ) {
@@ -232,15 +238,16 @@ public class QoSImprovementSuggester {
     private static void sendMigrationAction(
             MigrationCandidate migrationCandidate,
             MigrationMapper migrationMapper,
-            RaftClient raftClient,
-            ActorContext<?> context
+            RaftClient raftClient
     ) {
         MigrationAction migrationAction = migrationCandidate.toMigrationAction();
         MigrationActionOuterClass.MigrationAction migrationActionProto = migrationMapper.toProto(migrationAction);
         Message migrationActionMessage = Message.valueOf(ByteString.copyFrom(migrationActionProto.toByteArray()));
 
+        log.debug("Sending this migrationActionProto: {}", migrationActionProto);
+
         raftClient.async().send(migrationActionMessage)
-                .thenAccept(reply -> log.info("Migration action sent successfully: {}", migrationAction))
+                .thenAccept(reply -> log.info("Migration action applied successfully for microservice {} suggested at {} by LDM {}!", migrationAction.microservice().getId(), migrationAction.suggestedAt(), migrationAction.suggesterId()))
                 .exceptionally(ex -> {
                     log.error("Error while sending migration action: ", ex);
                     return null;
@@ -268,31 +275,76 @@ public class QoSImprovementSuggester {
         );
     }
 
-    private static Set<CompletionStage<Boolean>> collectVotes(Set<ActorRef<MigrationProposalVoter.VotingProtocol>> voterSet, MigrationCandidate candidate, Duration timeout, ActorContext<QoSImproveSuggestionProtocol> context) {
+    private static Set<CompletionStage<Boolean>> collectVotes(Set<ActorRef<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal>> voterSet, MigrationCandidate candidate, Duration timeout, ActorContext<QoSImproveSuggestionProtocol> context) {
+        // Convert MigrationCandidate to Protobuf format
+        Map<Microservice, Double> affinitiesInMicroservice = candidate.microservice().getAffinities();
+        Map<String, Double> affinitiesMapForProto = affinitiesInMicroservice
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        entry -> entry.getKey().getId(),
+                        Map.Entry::getValue
+                ));
+
+        EvaluateMigrationProposalOuterClass.MigrationCandidate protobufCandidate =
+                EvaluateMigrationProposalOuterClass.MigrationCandidate.newBuilder()
+                        .setMicroservice(EvaluateMigrationProposalOuterClass.Microservice.newBuilder()
+                                .setId(candidate.microservice().getId())
+                                .setName(candidate.microservice().getName())
+                                .setCpuUsage(candidate.microservice().getCpuUsage())
+                                .setMemoryUsage(candidate.microservice().getMemoryUsage())
+                                .setK8SCluster(EvaluateMigrationProposalOuterClass.K8sCluster.newBuilder()
+                                        .setId(candidate.microservice().getK8sCluster().getId())
+                                        .setLocation(candidate.microservice().getK8sCluster().getLocation())
+                                        .build())
+                                .putAllAffinities(affinitiesMapForProto)
+                                .build())
+                        .setImprovementScore(candidate.improvementScore())
+                        .setTargetK8SCluster(EvaluateMigrationProposalOuterClass.K8sCluster.newBuilder()
+                                .setId(candidate.targetK8sCluster().getId())
+                                .setLocation(candidate.targetK8sCluster().getLocation())
+                                .build())
+                        .setSuggesterId(candidate.suggesterId())
+                        .build();
         return voterSet.stream()
                 .map(voter -> AskPattern.askWithStatus(
                         voter,
-                        (ActorRef<StatusReply<Boolean>> replyTo) -> new MigrationProposalVoter.EvaluateMigrationProposal(candidate, replyTo),
+                        replyTo -> EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal.newBuilder()
+                                .setMigrationCandidate(protobufCandidate)
+                                .setReplyToActorPath(ActorRefResolver.get(context.getSystem()).toSerializationFormat(replyTo)).build(),
                         timeout,
                         context.getSystem().scheduler()
                 ))
+                .map(future -> future.thenApply(response -> {
+                    // Extract the Boolean approval from the response
+                    if (response instanceof StatusReply) {
+                        log.debug("Received Vote: " + ((StatusReply<?>) response).getValue());
+                        return ((StatusReply<Boolean>) response).isSuccess()
+                                ? ((StatusReply<Boolean>) response).getValue()
+                                : false;
+                    }
+                    return (Boolean) response;
+                }))
                 .collect(Collectors.toSet());
     }
 
-    private static boolean shouldMigrate(Set<CompletionStage<Boolean>> votes, long totalVoters, ActorContext<QoSImproveSuggestionProtocol> context) {
+    private static boolean shouldMigrate(Set<CompletionStage<Boolean>> votes, long totalVoters) {
         long approvedVoteCount = votes.stream()
                 .map(CompletionStage::toCompletableFuture)
                 .map(CompletableFuture::join)
                 .filter(Boolean::booleanValue)
                 .count();
+
+        log.debug("approvedVoteCount: " + approvedVoteCount);
         long majorityThreshold = (totalVoters / 2) + 1;
+        log.debug("majorityThreshold: " + majorityThreshold);
 
         if (approvedVoteCount >= majorityThreshold) {
-            context.getLog().info("Majority approval received. Proceeding with the migration proposal.");
+            log.info(">>>>>>>>>>>>>>>>>>>>>>>>>Majority approval APPROVED. Proceeding with the migration proposal.<<<<<<<<<<<<<<<<<<<<<<");
             return true;
         }
 
-        context.getLog().info("Migration proposal rejected. Majority approval not met.");
+        log.info("-->>>>>>>>>>>>>>>>>>>>>>>>>Migration proposal REJECTED. Majority approval not met.<<<<<<<<<<<<<<<<<<<<<<--");
         return false;
     }
 }

@@ -8,6 +8,7 @@ import com.ldm.application.service.DomainManager;
 import com.ldm.application.service.MicroservicesCache;
 import com.ldm.infrastructure.adapter.in.ratis.LDMStateMachine;
 import com.ldm.infrastructure.adapter.in.ratis.RaftLeaderChangeHandler;
+import com.ldm.infrastructure.mapper.MicroserviceMapper;
 import com.ldm.infrastructure.mapper.MigrationMapper;
 import com.ldm.shared.constants.LeaderElectionModeEnum;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -32,6 +33,8 @@ public class ActorSystemsManagerProducer {
 
     private final MigrationMapper migrationMapper;
 
+    private final MicroserviceMapper microserviceMapper;
+
     @Inject
     MicroservicesCache microservicesCache;
 
@@ -51,7 +54,7 @@ public class ActorSystemsManagerProducer {
     @Produces
     @Singleton
     public ActorSystemManager createActorSystemsManager() {
-        ActorSystemManager actorSystemManager = new ActorSystemManager(ldmConfig, clusterLatencyCache, raftClient, domainManager, migrationMapper);
+        ActorSystemManager actorSystemManager = new ActorSystemManager(ldmConfig, clusterLatencyCache, raftClient, domainManager, migrationMapper, microserviceMapper);
         RaftLeaderChangeHandler raftLeaderChangeHandler = new RaftLeaderChangeHandler(raftClient, domainManager, actorSystemManager);
         raftLeaderChangeHandler.setLeaderElectionModeEnum(leaderElectionMode);
         raftLeaderChangeHandler.setDefaultLeader(defaultLeader);
