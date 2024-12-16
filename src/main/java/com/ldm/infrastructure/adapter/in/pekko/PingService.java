@@ -62,7 +62,7 @@ public class PingService {
                     .build();
 
             // Log and send the Pong response
-            context.getLog().info("Ping received from {}. Sending back Pong: {}", replyTo, pong);
+            context.getLog().debug("Ping received from {}. Sending back Pong: {}", replyTo, pong);
             replyTo.tell(pong);
 
             return Behaviors.same(); // Continue with the same behavior

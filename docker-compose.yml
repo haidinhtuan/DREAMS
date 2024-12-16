@@ -20,7 +20,7 @@ services:
       - LDM_LATENCY_CHECK_INTERVAL=10
       - LDM_LATENCY_CHECK_MAX_RETRY=3
       - LDM_PROPOSAL_INTERVAL=30
-      - LDM_PROPOSAL_REQUEST_TIMEOUT=10
+      - LDM_PROPOSAL_REQUEST_TIMEOUT=20
       - LDM_PROPOSAL_THRESHOLD=0.2
       - LDM_PROPOSAL_SCALING_FACTOR=20
       - LDM_VOTING_THRESHOLD=0.3
@@ -44,6 +44,7 @@ services:
       - LEADER_ELECTION_MODE=TESTING
       - DEFAULT_LEADER=54f34e52-b466-49f8-b525-230cd107148b
       - LOG_LEVEL=INFO
+      - RATIS_LOG_LEVEL=WARN
     volumes:
       - ./experiments/exp1/LDM1.json:/data/LDM1.json
       - ./experiments/exp1/ldm1/raft-storage/:/data/raft-storage # Separate RAFT storage for ldm1
@@ -69,7 +70,7 @@ services:
       - LDM_LATENCY_CHECK_INTERVAL=10
       - LDM_LATENCY_CHECK_MAX_RETRY=3
       - LDM_PROPOSAL_INTERVAL=30
-      - LDM_PROPOSAL_REQUEST_TIMEOUT=10
+      - LDM_PROPOSAL_REQUEST_TIMEOUT=20
       - LDM_PROPOSAL_THRESHOLD=0.2
       - LDM_PROPOSAL_SCALING_FACTOR=20
       - LDM_VOTING_THRESHOLD=0.3
@@ -92,7 +93,8 @@ services:
       - PEKKO_PORT=6001
       - LEADER_ELECTION_MODE=TESTING
       - DEFAULT_LEADER=54f34e52-b466-49f8-b525-230cd107148b
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=DEBUG
+      - RATIS_LOG_LEVEL=WARN
     volumes:
       - ./experiments/exp1/LDM2.json:/data/LDM2.json
       - ./experiments/exp1/ldm2/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm2
@@ -120,7 +122,7 @@ services:
       - LDM_LATENCY_CHECK_INTERVAL=10
       - LDM_LATENCY_CHECK_MAX_RETRY=3
       - LDM_PROPOSAL_INTERVAL=30
-      - LDM_PROPOSAL_REQUEST_TIMEOUT=10
+      - LDM_PROPOSAL_REQUEST_TIMEOUT=20
       - LDM_PROPOSAL_THRESHOLD=0.2
       - LDM_PROPOSAL_SCALING_FACTOR=20
       - LDM_VOTING_THRESHOLD=0.3
@@ -145,7 +147,8 @@ services:
       - PEKKO_PORT=6002
       - LEADER_ELECTION_MODE=TESTING
       - DEFAULT_LEADER=54f34e52-b466-49f8-b525-230cd107148b
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=DEBUG
+      - RATIS_LOG_LEVEL=WARN
     volumes:
       - ./experiments/exp1/LDM3.json:/data/LDM3.json
       - ./experiments/exp1/ldm3/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm3

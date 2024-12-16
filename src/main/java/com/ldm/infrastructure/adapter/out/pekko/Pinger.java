@@ -56,17 +56,17 @@ public class Pinger {
 
         result.whenComplete((response, throwable) -> {
             if (response != null) {
-                log.info("Received a response! Sending WrappedPong...");
+                log.debug("Received a response! Sending WrappedPong...");
                 context.getSelf().tell(new WrappedPong(response));
             } else if (throwable != null) {
                 context.getLog().error("Ping failed to {}: {}", pingService.path().address(), throwable.getMessage());
 
                 if (retryCount < maxRetry) {
-                    log.info("Retrying ping to {} (attempt {}/{})", pingService.path().address(), retryCount + 1, maxRetry);
+                    log.debug("Retrying ping to {} (attempt {}/{})", pingService.path().address(), retryCount + 1, maxRetry);
                     context.getSystem().scheduler().scheduleOnce(BACKOFF, () -> context.getSelf().tell(new Retry(retryCount + 1)),  // Retry with incremented count
                             context.getExecutionContext());
                 } else {
-                    log.info("Setting max latency so the target ldm since the ping failed");
+                    log.warn("Setting max latency so the target ldm since the ping failed");
 //                  TODO:  cache.cacheClusterLatency();
                     log.info("Max retries reached. Stopping Pinger.");
                     context.getSelf().tell(new Stop());
@@ -80,12 +80,12 @@ public class Pinger {
             // TODO: For Testing/Experiments
             if (!isClusterMonitoringEnabled) {
                 Long clusterLatencyFromTestData = TestClusterMonitoringServiceMock.latencyToLDMs.get(msg.pong.getLdmId());
-                context.getLog().info(">> TEST DATA: Latency to {}: {} ns", pingService.path().address(), clusterLatencyFromTestData);
+                context.getLog().debug(">> TEST DATA: Latency to {}: {} ns", pingService.path().address(), clusterLatencyFromTestData);
                 cache.cacheClusterLatency(msg.pong.getLdmId(), clusterLatencyFromTestData);
                 //                    long clusterLatencyFromTestData = ExperimentUtil.getClusterLatencyByLdmId(ldmId, testDataConfig);
 //                    if(clusterLatencyFromTestData==-1) throw new RuntimeException("Make sure that the latency to the LDM/Cluster is set properly in the test data!!");
             } else {
-                context.getLog().info("Latency to {}: {} ns", pingService.path().address(), latency);
+                context.getLog().debug("Latency to {}: {} ns", pingService.path().address(), latency);
                 // Cache the calculated latency
                 cache.cacheClusterLatency(msg.pong.getLdmId(), latency);
             }

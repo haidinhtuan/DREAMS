@@ -6,10 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.ldm.infrastructure.json.MicroserviceDeserializer;
 import com.ldm.infrastructure.json.MicroserviceSerializer;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Comparator;
@@ -37,6 +34,7 @@ public class Microservice {
 
     @JsonProperty("affinities")
     private Map<Microservice, Double> affinities; // Affinities with other microservices (microserviceId -> affinity score)
+
     private Map<Microservice, Double> dataExchangedWithServices;  // Data exchanged with other microservices in MB
 
     // ---
@@ -112,4 +110,34 @@ public class Microservice {
                 .filter(entry -> entry.getKey().getK8sCluster().getId().equalsIgnoreCase(targetLdmId))
                 .mapToDouble(Map.Entry::getValue).sum(); // Sum the affinity values for the target cluster
     }
+
+    @Override
+    public String toString() {
+        return "Microservice{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", isNonMigratable=" + isNonMigratable +
+                ", k8sCluster=" + (k8sCluster != null ? k8sCluster.getId() + " (" + k8sCluster.getLocation() + ")" : "null") +
+                ", affinities=" + (affinities != null ? affinities.entrySet().stream()
+                .map(entry -> {
+                    Microservice ms = entry.getKey();
+                    return ms.getId() + "=" + entry.getValue() +
+                            " (Cluster: " + (ms.getK8sCluster() != null ? ms.getK8sCluster().getId() + " (" + ms.getK8sCluster().getLocation() + ")" : "null") + ")";
+                })
+                .toList() : "null") +
+                ", dataExchangedWithServices=" + (dataExchangedWithServices != null ? dataExchangedWithServices.entrySet().stream()
+                .map(entry -> {
+                    Microservice ms = entry.getKey();
+                    return ms.getId() + "=" + entry.getValue() +
+                            " (Cluster: " + (ms.getK8sCluster() != null ? ms.getK8sCluster().getId() + " (" + ms.getK8sCluster().getLocation() + ")" : "null") + ")";
+                })
+                .toList() : "null") +
+                ", cpuUsage=" + cpuUsage +
+                ", memoryUsage=" + memoryUsage +
+                '}';
+    }
+
+
+
+
 }

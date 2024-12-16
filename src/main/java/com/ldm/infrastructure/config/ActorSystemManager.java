@@ -9,7 +9,9 @@ import com.ldm.infrastructure.adapter.in.pekko.PingService;
 import com.ldm.infrastructure.adapter.in.ratis.LDMStateMachine;
 import com.ldm.infrastructure.adapter.out.pekko.PingManager;
 import com.ldm.infrastructure.adapter.out.pekko.QoSImprovementSuggester;
+import com.ldm.infrastructure.mapper.MicroserviceMapper;
 import com.ldm.infrastructure.mapper.MigrationMapper;
+import com.ldm.infrastructure.serialization.protobuf.EvaluateMigrationProposalOuterClass;
 import com.ldm.infrastructure.serialization.protobuf.PingPong;
 import jakarta.annotation.PreDestroy;
 import lombok.Getter;
@@ -45,6 +47,7 @@ public class ActorSystemManager {
 
     private final MigrationMapper migrationMapper;
 
+    private final MicroserviceMapper microserviceMapper;
 
     @Getter
     @Setter
@@ -78,8 +81,8 @@ public class ActorSystemManager {
             );
 
             // Initialize MigrationProposalVoter actor
-            ActorRef<MigrationProposalVoter.VotingProtocol> migrationProposalVoter = context.spawn(
-                    MigrationProposalVoter.create(ldmConfig.id(), domainManager),
+            ActorRef<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal> migrationProposalVoter = context.spawn(
+                    MigrationProposalVoter.create(ldmConfig.id(), domainManager, microserviceMapper),
                     "MigrationProposalVoter"
             );
 

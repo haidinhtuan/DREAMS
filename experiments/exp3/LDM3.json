@@ -58,7 +58,7 @@
                 },
                 "MS10": {
                     "name": "MS10",
-                    "value": 95,
+                    "value": 10,
                     "k8sCluster": {
                         "id": "66472086-5a7b-461e-883e-2d4d4763e34d",
                         "location": "Singapore"
@@ -88,7 +88,7 @@
                 },
                 "MS9": {
                     "name": "MS9",
-                    "value": 95,
+                    "value": 10,
                     "k8sCluster": {
                         "id": "66472086-5a7b-461e-883e-2d4d4763e34d",
                         "location": "Singapore"

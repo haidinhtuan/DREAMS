@@ -71,7 +71,7 @@ services:
       - LDM_LATENCY_CHECK_INTERVAL=10
       - LDM_LATENCY_CHECK_MAX_RETRY=3
       - LDM_PROPOSAL_INTERVAL=10
-      - LDM_PROPOSAL_REQUEST_TIMEOUT=10
+      - LDM_PROPOSAL_REQUEST_TIMEOUT=20
       - LDM_PROPOSAL_THRESHOLD=0.2
       - LDM_PROPOSAL_SCALING_FACTOR=20
       - LDM_VOTING_THRESHOLD=0.3
@@ -85,7 +85,7 @@ services:
 #      - CLUSTER_PEER_1_HOST=ldm1
       - CLUSTER_PEER_1_PORT=4000
       - CLUSTER_PEER_2_ID=36f06b8b-cd19-4c72-a9a6-2f37baf4a422
-      - CLUSTER_PEER_2_HOST=localhost
+      - CLUSTER_PEER_2_HOST=ldm2
       - CLUSTER_PEER_2_PORT=4001
       - CLUSTER_PEER_3_ID=66472086-5a7b-461e-883e-2d4d4763e34d
       - CLUSTER_PEER_3_HOST=ldm3
@@ -96,12 +96,13 @@ services:
 #      - CLUSTER_SEED_NODE=pekko://ClusterSystem@ldm1:6000
       - PEKKO_PORT=6001
       - CLUSTER_SEED_NODE=pekko://ClusterSystem@host.docker.internal:6000
-      - LEADER_ELECTION_MODE=DEFAULT
-      - DEFAULT_LEADER=54f34e52-b466-49f8-b525-230cd107148b
-      - LOG_LEVEL=INFO
+      - LEADER_ELECTION_MODE=TESTING
+      - DEFAULT_LEADER=66472086-5a7b-461e-883e-2d4d4763e34d
+      - LOG_LEVEL=DEBUG
+      - RATIS_LOG_LEVEL=WARN
     volumes:
-      - ./experiments/exp1/LDM2.json:/data/LDM2.json
-      - ./experiments/exp1/ldm2/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm2
+      - ./experiments/exp3/LDM2.json:/data/LDM2.json
+      - ./experiments/exp3/ldm2/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm2
 #    depends_on:
 #      - ldm1
 
@@ -127,7 +128,7 @@ services:
       - LDM_LATENCY_CHECK_INTERVAL=10
       - LDM_LATENCY_CHECK_MAX_RETRY=3
       - LDM_PROPOSAL_INTERVAL=10
-      - LDM_PROPOSAL_REQUEST_TIMEOUT=10
+      - LDM_PROPOSAL_REQUEST_TIMEOUT=20
       - LDM_PROPOSAL_THRESHOLD=0.2
       - LDM_PROPOSAL_SCALING_FACTOR=20
       - LDM_VOTING_THRESHOLD=0.3
@@ -143,7 +144,7 @@ services:
       - CLUSTER_PEER_2_HOST=ldm2
       - CLUSTER_PEER_2_PORT=4001
       - CLUSTER_PEER_3_ID=66472086-5a7b-461e-883e-2d4d4763e34d
-      - CLUSTER_PEER_3_HOST=localhost
+      - CLUSTER_PEER_3_HOST=ldm3
       - CLUSTER_PEER_3_PORT=4002
       - TEST_DATA_FILE=/data/LDM3.json
       - ldmIdRole="ldmId-66472086-5a7b-461e-883e-2d4d4763e34d"
@@ -152,10 +153,11 @@ services:
       - PEKKO_PORT=6002
       - LEADER_ELECTION_MODE=DEFAULT
       - DEFAULT_LEADER=54f34e52-b466-49f8-b525-230cd107148b
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=DEBUG
+      - RATIS_LOG_LEVEL=WARN
     volumes:
-      - ./experiments/exp1/LDM3.json:/data/LDM3.json
-      - ./experiments/exp1/ldm3/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm3
+      - ./experiments/exp3/LDM3.json:/data/LDM3.json
+      - ./experiments/exp3/ldm3/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm3
 #    depends_on:
 #      - ldm1
 

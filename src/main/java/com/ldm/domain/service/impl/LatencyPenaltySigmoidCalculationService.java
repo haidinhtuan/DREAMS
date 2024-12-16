@@ -39,7 +39,7 @@ public class LatencyPenaltySigmoidCalculationService implements LatencyPenaltyCa
         if (targetAffinityScore > localAffinityScore) {
             // Affinity-driven distance penalty reduction using a sigmoid function
             double affinityDifference = targetAffinityScore - localAffinityScore;
-            latencyPenalty = latencyToTargetCluster / (1 + Math.exp(-affinityDifference / ldmConfig.proposal().scalingFactor()));
+            latencyPenalty = latencyToTargetCluster / (1 + Math.exp(affinityDifference / ldmConfig.proposal().scalingFactor()));
         } else {
             latencyPenalty = latencyToTargetCluster; // Regular penalty if target affinity isn't significantly higher
         }
