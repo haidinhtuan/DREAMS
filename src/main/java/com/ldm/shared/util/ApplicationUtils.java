@@ -28,25 +28,4 @@ public class ApplicationUtils {
                 5000
         );
     }
-
-//    public static GroupInfoReply getGroupInfo(
-//            RaftServer raftServer,
-//            RaftPeerId raftPeerId,
-//            RaftGroupId raftGroupId
-//    ) throws IOException {
-//        GroupInfoRequest groupInfoRequest = new GroupInfoRequest(
-//                ClientId.randomId(),
-//                raftPeerId,
-//                raftGroupId,
-//                System.currentTimeMillis()
-//        );
-//        return raftServer.getGroupInfo(groupInfoRequest);
-//    }
-
-//    public static boolean isClusterMonitoringEnabled(){
-//        return ConfigProvider.getConfig()
-//                .getOptionalValue("ldm.enable-cluster-monitoring", Boolean.class)
-//                .orElse(false);
-//
-//    }
 }

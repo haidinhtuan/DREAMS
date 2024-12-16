@@ -63,14 +63,11 @@ public class DomainManager {
                             migrationAction.microservice().getDataExchangedWithServices(), migrationAction.microservice().getCpuUsage(), migrationAction.microservice().getMemoryUsage());
                     if (migrationAction.targetK8sCluster().getId().equalsIgnoreCase(this.ldmConfig.id())) {
                         // New cluster of the candidate
-//                        return this.microservicesCache.cacheMicroservice(migrationAction.microservice().getId(), migrationAction.microservice())
-//                                ;
                         log.debug("Applied migration action and added the corresponding microservice to the local state: {}", migrationAction);
                         return this.microservicesCache.addMicroserviceIfNotExistsReactive(migrationActionEvent.microservice().getId(), migratedMicroservice);
                     } else if (migrationAction.microservice().getK8sCluster().getId().equalsIgnoreCase(ldmConfig.id())
                             && !migrationAction.targetK8sCluster().getId().equalsIgnoreCase(ldmConfig.id())) {
                         // Old cluster of the candidate
-//                                this.microservicesCache.removeMicroserviceById(migrationAction.microservice().getId());
                         log.debug("Removed microservice from the local state since it was moved to another cluster after migration: {}", migrationAction);
                         return this.microservicesCache.removeMicroserviceByIdReactive(migrationActionEvent.microservice().getId());
                     }

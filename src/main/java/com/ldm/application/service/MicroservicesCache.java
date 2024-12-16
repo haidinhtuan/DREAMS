@@ -22,7 +22,6 @@ public class MicroservicesCache {
     @CacheResult(cacheName = "microservices")
     public Uni<Microservice> getMicroserviceById(@CacheKey String microserviceId) {
         return cache.get(microserviceId, k -> null);
-//         Wait for the result synchronously
     }
 
     public void cacheMicroservice(String microserviceId, Microservice microservice) {
@@ -67,30 +66,6 @@ public class MicroservicesCache {
         });
     }
 
-    // Reactive methods for backward compatibility
-
-//    public Uni<Void> cacheMicroserviceReactive(String microserviceId, Microservice microservice) {
-//        log.debug("Reactively caching microservice with ID: {}", microserviceId);
-//        CaffeineCache caffeineCache = cache.as(CaffeineCache.class);
-//        caffeineCache.put(microserviceId, CompletableFuture.completedFuture(microservice));
-//        return Uni.createFrom().voidItem();
-//    }
-
-//    public Uni<Void> cacheMicroserviceReactive(String microserviceId, Microservice microservice) {
-//        log.debug("Caching microservice with ID: {}", microserviceId);
-//
-//        // Ensure no recursive update is triggered
-//        CaffeineCache caffeineCache = cache.as(CaffeineCache.class);
-//        if (caffeineCache.getIfPresent(microserviceId) == null) {
-//            caffeineCache.put(microserviceId, CompletableFuture.completedFuture(microservice));
-//            return Uni.createFrom().voidItem();
-//        } else {
-//            log.warn("Attempt to update an entry already being processed: {}", microserviceId);
-//        }
-//        return Uni.createFrom().voidItem();
-//    }
-
-
     public Uni<Void> removeMicroserviceByIdReactive(String microserviceId) {
         log.debug("Reactively removing microservice with ID: {}", microserviceId);
         return cache.invalidate(microserviceId)
@@ -114,19 +89,6 @@ public class MicroservicesCache {
         return Multi.createFrom().items(cache.as(CaffeineCache.class).keySet().stream())
                 .onItem().transformToUniAndMerge(key -> getMicroserviceById(key.toString()));
     }
-
-//    public Uni<Void> updateMicroserviceIfExists(String microserviceId, Microservice updatedMicroservice) {
-//        return getMicroserviceById(microserviceId)
-//                .onItem().ifNotNull().call(existingMicroservice -> {
-//                    log.debug("Microservice found in cache with ID: {}. Updating entry.", microserviceId);
-//                    return cacheMicroserviceReactive(microserviceId, updatedMicroservice);
-//                })
-//                .onItem().ifNull().continueWith(() -> {
-//                    log.debug("No microservice found in cache with ID: {}. No update performed.", microserviceId);
-//                    return null;
-//                })
-//                .replaceWithVoid();
-//    }
 
     public Uni<Void> addMicroserviceIfNotExistsReactive(String microserviceId, Microservice microservice) {
         log.debug("Caching microservice with ID: {}", microserviceId);
@@ -163,44 +125,5 @@ public class MicroservicesCache {
                 })
                 .replaceWithVoid();
     }
-
-
-//    public Uni<Void> updateMicroserviceIfExists(String microserviceId, Microservice updatedMicroservice) {
-//        return
-//                Uni.createFrom()
-//                        .completionStage(this.cache.as(CaffeineCache.class).getIfPresent(microserviceId))
-//                        .onItem().ifNotNull().transformToUni(existingMicroservice -> {
-//                            log.debug("Microservice found in cache with ID: {}. Updating entry.", microserviceId);
-//
-//                            return removeMicroserviceByIdReactive(microserviceId)
-//                                    .flatMap(unused -> addMicroserviceIfNotExistsReactive(microserviceId, updatedMicroservice));
-//                        })
-//                        .onItem().ifNull().continueWith(() -> {
-//                            log.debug("No microservice found in cache with ID: {}. No update performed.", microserviceId);
-//                            return null;
-//                        })
-//                        .replaceWithVoid();
-//    }
-
-
-//    public Uni<Void> updateMicroserviceIfExists(String microserviceId, Microservice updatedMicroservice) {
-//        return getMicroserviceById(microserviceId)
-//                .onItem().ifNotNull().call(existingMicroservice -> {
-//                    log.debug("Microservice found in cache with ID: {}. Updating entry.", microserviceId);
-//
-//                    removeMicroserviceByIdReactive(microserviceId)
-//                            .onItem()
-//                            .transformToUni(unused -> cacheMicroserviceReactive(microserviceId, updatedMicroservice));
-//
-//                    // Cache the updated microservice directly without modifying the existing one
-////                    return cacheMicroserviceReactive(microserviceId, updatedMicroservice);
-//                })
-//                .onItem().ifNull().continueWith(() -> {
-//                    log.debug("No microservice found in cache with ID: {}. No update performed.", microserviceId);
-//                    return null; // Necessary to keep the Uni<Void> chain consistent
-//                })
-//                .replaceWithVoid(); // Ensure the return type is always Uni<Void>
-//    }
-
 }
 

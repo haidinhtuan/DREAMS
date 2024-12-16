@@ -136,8 +136,4 @@ public class Microservice {
                 ", memoryUsage=" + memoryUsage +
                 '}';
     }
-
-
-
-
 }
