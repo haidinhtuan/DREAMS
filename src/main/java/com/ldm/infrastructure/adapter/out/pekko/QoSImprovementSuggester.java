@@ -90,6 +90,8 @@ public class QoSImprovementSuggester {
                         context.getLog().info("++++++++++++++++++++++++++++Executing QoS Improvement Task++++++++++++++++++++++++++++");
                         context.getLog().info("**************************************************************************************");
                         context.getLog().info("**************************************************************************************");
+                        context.getLog().info("PRINTING OUT CURRENT MICROSERVICES STATE BEFORE QoS Improvement:");
+                        domainManager.printMicroservicesState();
 
                         discoverAndShutdownSuggesters(context, TIMEOUT_DURATION, listingResponseAdapter)
                                 .thenRun(() -> handleQoSImprovement(

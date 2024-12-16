@@ -16,14 +16,14 @@ public interface MicroserviceMapper {
 
     @Mapping(target = "k8sCluster", source = "protoMicroservice.k8SCluster")
     @Mapping(target = "isNonMigratable", source = "protoMicroservice.nonMigratable")
-    @Mapping(target = "affinities", expression = "java(mapProtoToDomainAffinities(protoMicroservice))")
-    @Mapping(target = "dataExchangedWithServices", expression = "java(mapProtoToDomainDataExchanged(protoMicroservice))")
+    @Mapping(target = "affinities", expression = "java(mapToDomainAffinities(protoMicroservice))")
+    @Mapping(target = "dataExchangedWithServices", expression = "java(mapProtoToDomainDataExchangeMap(protoMicroservice))")
     Microservice toDomainModel(MigrationActionOuterClass.Microservice protoMicroservice);
 
     @Mapping(target = "k8sCluster", source = "k8SCluster")
     @Mapping(target = "isNonMigratable", source = "nonMigratable")
-    @Mapping(target = "affinities", expression = "java(mapProtoToDomainAffinities(protoMicroservice))")
-    @Mapping(target = "dataExchangedWithServices", expression = "java(mapProtoToDomainDataExchanged(protoMicroservice))")
+    @Mapping(target = "affinities", expression = "java(mapToDomainAffinities(protoMicroservice))")
+    @Mapping(target = "dataExchangedWithServices", expression = "java(mapProtoToDomainDataExchangeMap(protoMicroservice))")
     Microservice toDomainModel(EvaluateMigrationProposalOuterClass.Microservice protoMicroservice);
 
 //    @Mapping(target = "k8SCluster", source = "microservice.k8sCluster")
@@ -48,7 +48,17 @@ public interface MicroserviceMapper {
                     affinities.entrySet().stream()
                             .collect(Collectors.toMap(
                                     entry -> entry.getKey().getId(),
-                                    Map.Entry::getValue
+                                    entry -> {
+                                        MigrationActionOuterClass.K8sCluster k8sCluster = MigrationActionOuterClass.K8sCluster.newBuilder()
+                                                .setId(entry.getKey().getK8sCluster().getId())
+                                                .setLocation(entry.getKey().getK8sCluster().getLocation())
+                                                .build();
+                                        return MigrationActionOuterClass.Affinity.newBuilder()
+                                                .setName(entry.getKey().getName())
+                                                .setValue(entry.getValue())
+                                                .setK8SCluster(k8sCluster)
+                                                .build();
+                                    }
                             ))
             );
         }
@@ -96,30 +106,28 @@ public interface MicroserviceMapper {
     }
     //-----
 
-
-
-    default Map<Microservice, Double> mapProtoToDomainAffinities(EvaluateMigrationProposalOuterClass.Microservice protoMicroservice) {
+    default Map<Microservice, Double> mapToDomainAffinities(MigrationActionOuterClass.Microservice protoMicroservice) {
         if (protoMicroservice.getAffinitiesMap() == null) {
             return new HashMap<>(); // Use a mutable map
         }
 
         return protoMicroservice.getAffinitiesMap().entrySet().stream()
                 .collect(Collectors.toMap(
-                        entry -> buildMicroservice(entry.getKey(), protoMicroservice), // Build full Microservice object
-                        Map.Entry::getValue,
+                        entry -> buildMicroserviceAffinityKey(entry, protoMicroservice), // Build full Microservice object
+                        entry -> entry.getValue().getValue(),
                         (existing, replacement) -> existing, // Handle duplicates if any
                         HashMap::new // Ensure the resulting map is mutable
                 ));
     }
 
-    default Map<Microservice, Double> mapProtoToDomainAffinities(MigrationActionOuterClass.Microservice protoMicroservice) {
+    default Map<Microservice, Double> mapToDomainAffinities(EvaluateMigrationProposalOuterClass.Microservice protoMicroservice) {
         if (protoMicroservice.getAffinitiesMap() == null) {
             return new HashMap<>(); // Use a mutable map
         }
 
         return protoMicroservice.getAffinitiesMap().entrySet().stream()
                 .collect(Collectors.toMap(
-                        entry -> buildMicroservice(entry.getKey(), protoMicroservice), // Build full Microservice object
+                        entry -> buildMicroserviceAffinityKey(entry.getKey(), protoMicroservice), // Build full Microservice object
                         Map.Entry::getValue,
                         (existing, replacement) -> existing, // Handle duplicates if any
                         HashMap::new // Ensure the resulting map is mutable
@@ -127,67 +135,41 @@ public interface MicroserviceMapper {
     }
 
 
-//    default Map<Microservice, Double> mapProtoToDomainAffinities(EvaluateMigrationProposalOuterClass.Microservice protoMicroservice) {
-//        if (protoMicroservice.getAffinitiesMap() == null) {
-//            return Map.of();
-//        }
-//
-//        return protoMicroservice.getAffinitiesMap().entrySet().stream()
-//                .collect(Collectors.toMap(
-//                        entry -> buildMicroservice(entry.getKey(), protoMicroservice), // Build full Microservice object
-//                        Map.Entry::getValue
-//                ));
-//    }
-//
-//
-//    // Mapping Protobuf affinities map to Domain model affinities map
-//    default Map<Microservice, Double> mapProtoToDomainAffinities(MigrationActionOuterClass.Microservice protoMicroservice) {
-//        if (protoMicroservice.getAffinitiesMap() == null) {
-//            return Map.of();
-//        }
-//
-//        return protoMicroservice.getAffinitiesMap().entrySet().stream()
-//                .collect(Collectors.toMap(
-//                        entry -> buildMicroservice(entry.getKey(), protoMicroservice), // Build full Microservice object
-//                        Map.Entry::getValue
-//                ));
-//    }
+    default Map<Microservice, MigrationActionOuterClass.Affinity> mapToProtoAffinities(MigrationActionOuterClass.Microservice protoMicroservice) {
+        if (protoMicroservice.getAffinitiesMap() == null) {
+            return new HashMap<>(); // Use a mutable map
+        }
 
-    // Mapping Domain model affinities map to Protobuf affinities map
-//    default Map<String, Double> mapDomainToProtoAffinities(Map<Microservice, Double> affinities) {
-//        if (affinities == null) {
-//            return Map.of();
-//        }
-//
-//        Map<String, Double> affinityMap = affinities.entrySet().stream()
-//                .collect(Collectors.toMap(
-//                        entry -> entry.getKey().getId(), // Map Microservice key to String
-//                        Map.Entry::getValue
-//                ));
-//        return affinityMap;
-//    }
+        return protoMicroservice.getAffinitiesMap().entrySet().stream()
+                .collect(Collectors.toMap(
+                        entry -> buildMicroserviceAffinityKey(protoMicroservice), // Build full Microservice object
+                        Map.Entry::getValue,
+                        (existing, replacement) -> existing, // Handle duplicates if any
+                        HashMap::new // Ensure the resulting map is mutable
+                ));
+    }
 
     // Mapping Protobuf dataExchangedWithServices map to Domain model
-    default Map<Microservice, Double> mapProtoToDomainDataExchanged(MigrationActionOuterClass.Microservice protoMicroservice) {
+    default Map<Microservice, Double> mapProtoToDomainDataExchangeMap(MigrationActionOuterClass.Microservice protoMicroservice) {
         if (protoMicroservice.getDataExchangedWithServicesMap() == null) {
             return Map.of();
         }
 
         return protoMicroservice.getDataExchangedWithServicesMap().entrySet().stream()
                 .collect(Collectors.toMap(
-                        entry -> buildMicroservice(entry.getKey(), protoMicroservice), // Build full Microservice object
+                        entry -> buildMicroserviceDataExchangeKey(entry.getKey()), // Build full Microservice object
                         Map.Entry::getValue
                 ));
     }
 
-    default Map<Microservice, Double> mapProtoToDomainDataExchanged(EvaluateMigrationProposalOuterClass.Microservice protoMicroservice) {
+    default Map<Microservice, Double> mapProtoToDomainDataExchangeMap(EvaluateMigrationProposalOuterClass.Microservice protoMicroservice) {
         if (protoMicroservice.getDataExchangedWithServicesMap() == null) {
             return Map.of();
         }
 
         return protoMicroservice.getDataExchangedWithServicesMap().entrySet().stream()
                 .collect(Collectors.toMap(
-                        entry -> buildMicroservice(entry.getKey(), protoMicroservice), // Build full Microservice object
+                        entry -> buildMicroserviceAffinityKey(entry.getKey(), protoMicroservice), // Build full Microservice object
                         Map.Entry::getValue
                 ));
     }
@@ -206,9 +188,9 @@ public interface MicroserviceMapper {
 //    }
 
     // Build a full Microservice object for affinities or dataExchangedWithServices keys
-    default Microservice buildMicroservice(String microserviceId, MigrationActionOuterClass.Microservice protoMicroservice) {
+    private Microservice buildMicroserviceAffinityKey(MigrationActionOuterClass.Microservice protoMicroservice) {
         Microservice microservice = Microservice.builder()
-                .id(microserviceId)
+                .id(protoMicroservice.getId())
 //                .name(protoMicroservice.getName())
 //                .isNonMigratable(protoMicroservice.getNonMigratable())
 //                .k8sCluster(new K8sCluster(
@@ -219,26 +201,30 @@ public interface MicroserviceMapper {
 //                .memoryUsage(protoMicroservice.getMemoryUsage())
                 .build();
 
-        Map<Microservice, Double> affinitiesInMicroservice = protoMicroservice
+        Map<Microservice, MigrationActionOuterClass.Affinity> affinitiesInMicroservice = protoMicroservice
                 .getAffinitiesMap()
                 .entrySet()
                 .stream()
                 .collect(Collectors.toMap(
                         key -> Microservice.builder()
                                 .id(key.getKey())
-                                .name(protoMicroservice.getName())
-                                .isNonMigratable(protoMicroservice.getNonMigratable())
+                                .name(key.getValue().getName())
                                 .k8sCluster(new K8sCluster(
-                                        protoMicroservice.getK8SCluster().getId(),
-                                        protoMicroservice.getK8SCluster().getLocation()
+                                        key.getValue().getK8SCluster().getId(),
+                                        key.getValue().getK8SCluster().getLocation()
                                 ))
-                                .cpuUsage(protoMicroservice.getCpuUsage())
-                                .memoryUsage(protoMicroservice.getMemoryUsage())
                                 .build(),
                         Map.Entry::getValue
                 ));
 
-        microservice.setAffinities(affinitiesInMicroservice);
+        Map<Microservice, Double> affinityMap = affinitiesInMicroservice.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().getValue()
+                ));
+
+        microservice.setAffinities(affinityMap);
 
         return microservice;
 //        Microservice microservice = Microservice.builder()
@@ -267,7 +253,36 @@ public interface MicroserviceMapper {
 //        return microservice;
     }
 
-    default Microservice buildMicroservice(String microserviceId, EvaluateMigrationProposalOuterClass.Microservice protoMicroservice) {
+    default Microservice buildMicroserviceDataExchangeKey(String microserviceId) {
+        Microservice microservice = Microservice.builder()
+                .id(microserviceId)
+                .build();
+
+//        Map<Microservice, Double> affinitiesInMicroservice = protoMicroservice
+//                .getAffinitiesMap()
+//                .entrySet()
+//                .stream()
+//                .collect(Collectors.toMap(
+//                        key -> Microservice.builder()
+//                                .id(key.getKey())
+//                                .name(protoMicroservice.getName())
+//                                .isNonMigratable(protoMicroservice.getNonMigratable())
+//                                .k8sCluster(new K8sCluster(
+//                                        protoMicroservice.getK8SCluster().getId(),
+//                                        protoMicroservice.getK8SCluster().getLocation()
+//                                ))
+//                                .cpuUsage(protoMicroservice.getCpuUsage())
+//                                .memoryUsage(protoMicroservice.getMemoryUsage())
+//                                .build(),
+//                        Map.Entry::getValue
+//                ));
+
+//        microservice.setAffinities(affinitiesInMicroservice);
+
+        return microservice;
+    }
+
+    default Microservice buildMicroserviceAffinityKey(String microserviceId, EvaluateMigrationProposalOuterClass.Microservice protoMicroservice) {
         Microservice microservice = Microservice.builder()
                 .id(microserviceId)
 //                .name(protoMicroservice.getName())
@@ -279,8 +294,6 @@ public interface MicroserviceMapper {
 //                .cpuUsage(protoMicroservice.getCpuUsage())
 //                .memoryUsage(protoMicroservice.getMemoryUsage())
                 .build();
-
-        Double affinityValue = protoMicroservice.getAffinitiesMap().get(microserviceId);
 
         Map<Microservice, Double> affinitiesInMicroservice = protoMicroservice
                 .getAffinitiesMap()
@@ -304,5 +317,48 @@ public interface MicroserviceMapper {
         microservice.setAffinities(affinitiesInMicroservice);
 
         return microservice;
+    }
+
+    default Microservice buildMicroserviceAffinityKey(Map.Entry<String, MigrationActionOuterClass.Affinity> affinityMicroservice, MigrationActionOuterClass.Microservice protoMicroservice) {
+        MigrationActionOuterClass.K8sCluster k8SClusterProto = affinityMicroservice.getValue().getK8SCluster();
+
+        //        Map<Microservice, Double> affinitiesInMicroservice = protoMicroservice
+//                .getAffinitiesMap()
+//                .entrySet()
+//                .stream()
+//                .collect(Collectors.toMap(
+//                        key -> Microservice.builder()
+//                                .id(protoMicroservice.getId())
+//                                .name(protoMicroservice.getName())
+//                                .isNonMigratable(protoMicroservice.getNonMigratable())
+//                                .k8sCluster(new K8sCluster(
+//                                        protoMicroservice.getK8SCluster().getId(),
+//                                        protoMicroservice.getK8SCluster().getLocation()
+//                                ))
+//                                .cpuUsage(protoMicroservice.getCpuUsage())
+//                                .memoryUsage(protoMicroservice.getMemoryUsage())
+//                                .build(),
+//                        entry -> entry.getValue().getValue()
+//                ));
+//
+//        microservice.setAffinities(affinitiesInMicroservice);
+
+        return Microservice.builder()
+                .id(affinityMicroservice.getKey())
+                .name(affinityMicroservice.getKey())
+                .k8sCluster(new K8sCluster(k8SClusterProto.getId(), k8SClusterProto.getLocation()))
+//                .name(microserviceId)
+//                .k8sCluster(new K8sCluster(
+//                        protoMicroservice.getK8SCluster().getId(),
+//                        protoMicroservice.getK8SCluster().getLocation()
+//                ))
+//                .isNonMigratable(protoMicroservice.getNonMigratable())
+//                .k8sCluster(new K8sCluster(
+//                        protoMicroservice.getK8SCluster().getId(),
+//                        protoMicroservice.getK8SCluster().getLocation()
+//                ))
+//                .cpuUsage(protoMicroservice.getCpuUsage())
+//                .memoryUsage(protoMicroservice.getMemoryUsage())
+                .build();
     }
 }

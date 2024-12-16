@@ -1,5 +1,6 @@
 package com.ldm.infrastructure.adapter.in.ratis;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.ldm.application.port.ConsensusHandler;
 import com.ldm.application.port.LeaderChangeHandler;
 import com.ldm.application.port.MigrationMachine;
@@ -8,6 +9,7 @@ import com.ldm.application.service.MicroservicesCache;
 import com.ldm.domain.model.MigrationAction;
 import com.ldm.infrastructure.mapper.MigrationMapper;
 import com.ldm.infrastructure.serialization.protobuf.MigrationActionOuterClass;
+import io.smallrye.mutiny.Uni;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,40 +45,48 @@ public class LDMStateMachine extends BaseStateMachine implements MigrationMachin
     /**
      * Processes migration actions
      */
-
     @Override
     public CompletableFuture<Message> applyTransaction(TransactionContext trx) {
-        RaftProtos.LogEntryProto entry = trx.getLogEntry();
+        return Uni.createFrom()
+                .item(trx)
+                .onItem()
+                .transformToUni(transactionContext -> {
+                    RaftProtos.LogEntryProto entry = transactionContext.getLogEntry();
+                    // Parse transaction data
+                    byte[] data = entry.getStateMachineLogEntry().getLogData().toByteArray();
+                    log.info("Applying transaction with LogIndex: {}", entry.getIndex());
+                    super.applyTransaction(transactionContext);
 
-        try {
-            // Parse transaction data
-            byte[] data = entry.getStateMachineLogEntry().getLogData().toByteArray();
-            log.info("Applying transaction with LogIndex: {}", entry.getIndex());
-            super.applyTransaction(trx);
+                    // Map to domain model
+                    MigrationActionOuterClass.MigrationAction protoMigrationAction;
+                    try {
+                        protoMigrationAction = MigrationActionOuterClass.MigrationAction.parseFrom(data);
+                        log.debug("RECEIVED protoMigrationAction:: {}", protoMigrationAction);
+                    } catch (InvalidProtocolBufferException e) {
+                        return Uni.createFrom().failure(e);
+                    }
+                    MigrationAction migrationAction = this.migrationMapper.toDomainModel(protoMigrationAction);
+                    log.debug("RECEIVED migrationAction: {}", migrationAction);
 
-            // Map to domain model
-            MigrationActionOuterClass.MigrationAction protoMigrationAction = MigrationActionOuterClass.MigrationAction.parseFrom(data);
-            MigrationAction migrationAction = this.migrationMapper.toDomainModel(protoMigrationAction);
-
-            // Handle consensus and execute migration
-            this.consensusHandler.handle(migrationAction);
-            log.info("Transaction processed successfully for LogIndex: {}", entry.getIndex());
-
-            if (trx.getServerRole() == RaftProtos.RaftPeerRole.LEADER) {
-                this.migrationService.executeMigration(migrationAction);
-
-                return CompletableFuture.completedFuture(Message.valueOf("Transaction applied successfully for migractionAction: " + migrationAction));
-            }
-
-            // Default response for non-leader nodes
-            return CompletableFuture.completedFuture(Message.valueOf("Transaction applied without leader-specific actions."));
-
-        } catch (Exception e) {
-            log.error("Failed to process transaction at LogIndex: {}", entry.getIndex(), e);
-
-            // Centralized error handling
-            return CompletableFuture.completedFuture(Message.valueOf("Error processing transaction: " + e.getMessage()));
-        }
+                    // Handle consensus and execute migration
+                    return this.consensusHandler.handle(migrationAction)
+                            .onItem()
+                            .transform(unused -> {
+                                log.info("Transaction processed successfully for LogIndex: {}", entry.getIndex());
+                                if (trx.getServerRole() == RaftProtos.RaftPeerRole.LEADER) {
+                                    this.migrationService.executeMigration(migrationAction);
+                                    log.debug("--------->> Microservices Cache AFTER proposal as LEADER: {}", microservicesCache);
+                                    microservicesCache.outputCache();
+                                    return Message.valueOf("Transaction applied successfully for migractionAction: " + migrationAction);
+                                }
+                                log.debug("--------->> Microservices Cache AFTER proposal: {}", microservicesCache);
+                                microservicesCache.outputCache();
+                                return Message.valueOf("Transaction applied without leader-specific actions.");
+                            });
+                })
+                .onFailure()
+                .recoverWithItem(throwable -> Message.valueOf("Error processing transaction: " + throwable.getMessage()))
+                .subscribeAsCompletionStage();
     }
 
     // Leader-specific logic extracted for clarity

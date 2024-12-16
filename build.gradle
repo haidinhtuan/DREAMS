@@ -22,9 +22,9 @@ dependencies {
     implementation 'io.quarkus:quarkus-rest'
     implementation 'io.quarkus:quarkus-scheduler'
     implementation("io.quarkus:quarkus-hibernate-validator")
-    //    implementation 'com.google.protobuf:protobuf-core:4.28.3'
-    implementation 'com.google.protobuf:protobuf-java:4.28.3' // Matches libprotoc 28.3
-    implementation 'com.google.protobuf:protobuf-java-util:4.28.3' // Optional for JSON serialization/deserialization
+    //    implementation 'com.google.protobuf:protobuf-core:4.29.1'
+    implementation 'com.google.protobuf:protobuf-java:4.29.1' // Matches libprotoc 28.3
+    implementation 'com.google.protobuf:protobuf-java-util:4.29.1' // Optional for JSON serialization/deserialization
     implementation 'org.apache.ratis:ratis-client:3.1.1'
     implementation 'org.apache.ratis:ratis-common:3.1.1'
     implementation 'org.apache.ratis:ratis-grpc:3.1.1'
@@ -62,7 +62,7 @@ dependencies {
 
 //protobuf {
 //    protoc {
-//        artifact = 'com.google.protobuf:protoc:4.28.3'  // Use the latest version of protoc
+//        artifact = 'com.google.protobuf:protoc:4.29.1'  // Use the latest version of protoc
 //    }
 //    generateProtoTasks {
 //        all().each { task ->
@@ -105,8 +105,8 @@ tasks.withType(JavaCompile) {
 
 configurations.all {
     resolutionStrategy {
-        force 'com.google.protobuf:protobuf-java-util:4.28.3'
-        force 'com.google.protobuf:protobuf-java:4.28.3'
+        force 'com.google.protobuf:protobuf-java-util:4.29.1'
+        force 'com.google.protobuf:protobuf-java:4.29.1'
     }
 }
 

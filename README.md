@@ -89,6 +89,8 @@ http://localhost:8082/api/ratis/trigger-leader-change/54f34e52-b466-49f8-b525-23
 # REST APIs to read from the Raft Storage
 ```
 http://localhost:8080/api/migrations
+http://localhost:8081/api/migrations
+http://localhost:8082/api/migrations
 ```
 
 # Troubleshooting

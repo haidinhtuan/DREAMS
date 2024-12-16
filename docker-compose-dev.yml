@@ -98,7 +98,7 @@ services:
       - CLUSTER_SEED_NODE=pekko://ClusterSystem@host.docker.internal:6000
       - LEADER_ELECTION_MODE=TESTING
       - DEFAULT_LEADER=66472086-5a7b-461e-883e-2d4d4763e34d
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=DEBUG
       - RATIS_LOG_LEVEL=WARN
     volumes:
       - ./experiments/exp3/LDM2.json:/data/LDM2.json

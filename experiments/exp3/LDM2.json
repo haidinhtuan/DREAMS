@@ -135,7 +135,7 @@
                 },
                 "MS10": {
                     "name": "MS10",
-                    "value": 30,
+                    "value": 40,
                     "k8sCluster": {
                         "id": "66472086-5a7b-461e-883e-2d4d4763e34d",
                         "location": "Singapore"

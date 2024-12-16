@@ -2,6 +2,7 @@ package com.ldm.application.service;
 
 import com.ldm.application.port.ConsensusHandler;
 import com.ldm.domain.model.MigrationAction;
+import io.smallrye.mutiny.Uni;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,8 +15,8 @@ public class DefaultConsensusHandler implements ConsensusHandler {
     private final DomainManager domainManager;
 
     @Override
-    public void handle(MigrationAction migrationAction) {
-        this.domainManager.updateState(migrationAction);
+    public Uni<Void> handle(MigrationAction migrationAction) {
+        return this.domainManager.updateState(migrationAction);
     }
 
 }

@@ -16,10 +16,17 @@ message Microservice {
   string name = 2;  // Name of the microservice
   bool non_migratable = 3;  // Indicates if the microservice can be migrated
   K8sCluster k8s_cluster = 4;  // The cluster the microservice is part of
-  map<string, double> affinities = 5;  // Affinity scores with other microservices (key: microservice ID)
+  map<string, Affinity> affinities = 5;  // Affinity scores with other microservices (key: microservice ID)
   map<string, double> data_exchanged_with_services = 6;  // Data exchanged in MB with other microservices (key: microservice ID)
   double cpu_usage = 7;  // CPU usage percentage
   double memory_usage = 8;  // Memory usage in MB
+}
+
+// Represents an affinity to another microservice
+message Affinity {
+  string name = 1;        // Name of the microservice
+  double value = 2;        // Affinity value
+  K8sCluster k8sCluster = 3; // Associated Kubernetes cluster
 }
 
 // Represents an action to migrate a microservice
