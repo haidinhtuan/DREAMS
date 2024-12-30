@@ -30,6 +30,7 @@ public class Microservice {
     // ---
     @JsonProperty("isNonMigratable")
     private boolean isNonMigratable;
+    @JsonProperty("k8sCluster")
     private K8sCluster k8sCluster;
 
     @JsonProperty("affinities")

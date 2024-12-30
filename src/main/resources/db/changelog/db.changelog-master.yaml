@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: "v1.2.0/001-create-pekko-r2dbc-eventsore.sql"
+      relativeToChangelogFile: true
+  - include:
+      file: "v1.2.0/002-create-ldm-state-table.sql"
+      relativeToChangelogFile: true

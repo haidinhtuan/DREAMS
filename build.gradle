@@ -1,8 +1,6 @@
 plugins {
     id 'java'
     id 'io.quarkus'
-//    id 'com.google.protobuf' version '0.9.3' // Ensure this version supports protoc 3.28.3
-//    id 'com.google.protobuf' version '0.8.19'
 }
 
 repositories {
@@ -10,7 +8,7 @@ repositories {
     mavenLocal()
 }
 def versions = [
-        ScalaBinary: "2.13"
+        ScalaBinary : "2.13"
 ]
 
 dependencies {
@@ -22,7 +20,6 @@ dependencies {
     implementation 'io.quarkus:quarkus-rest'
     implementation 'io.quarkus:quarkus-scheduler'
     implementation("io.quarkus:quarkus-hibernate-validator")
-    //    implementation 'com.google.protobuf:protobuf-core:4.29.1'
     implementation 'com.google.protobuf:protobuf-java:4.29.1' // Matches libprotoc 28.3
     implementation 'com.google.protobuf:protobuf-java-util:4.29.1' // Optional for JSON serialization/deserialization
     implementation 'org.apache.ratis:ratis-client:3.1.1'
@@ -39,9 +36,27 @@ dependencies {
     implementation "org.apache.pekko:pekko-cluster-typed_${versions.ScalaBinary}"
     implementation "org.apache.pekko:pekko-actor-typed_${versions.ScalaBinary}"
 
-//    implementation 'org.apache.pekko:pekko-cluster-typed_3:1.1.1'
-//    implementation 'org.apache.pekko:pekko-actor-typed_3:1.1.1'
-//    implementation 'org.apache.pekko:pekko-remote_2.13:1.1.1'
+
+    // Apache Pekko Event Sourcing Dependencies to record the migration actions for evluation purposes
+    implementation platform("org.apache.pekko:pekko-bom_${versions.ScalaBinary}:1.1.2")
+    implementation "org.apache.pekko:pekko-persistence-typed_${versions.ScalaBinary}"
+    testImplementation "org.apache.pekko:pekko-persistence-testkit_${versions.ScalaBinary}"
+
+    // Apache Pekko JDBC Store
+    implementation "org.apache.pekko:pekko-persistence-r2dbc_${versions.ScalaBinary}:1.0.0"
+    implementation "org.apache.pekko:pekko-projection-r2dbc_${versions.ScalaBinary}:1.0.0"
+    implementation "org.apache.pekko:pekko-projection-eventsourced_${versions.ScalaBinary}:1.0.0"
+
+    implementation "org.apache.pekko:pekko-serialization-jackson_${versions.ScalaBinary}"
+    // Hibernate ORM specific dependencies
+    implementation("io.quarkus:quarkus-hibernate-orm")
+
+
+    // JDBC driver dependencies
+    implementation("io.quarkus:quarkus-jdbc-postgresql")
+
+    // Liquibase specific dependencies
+    implementation("io.quarkus:quarkus-liquibase")
 
     testCompileOnly 'org.projectlombok:lombok:1.18.34'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
@@ -54,32 +69,8 @@ dependencies {
     testImplementation 'io.rest-assured:rest-assured'
 }
 
-//protobuf {
-//    protoc {
-//        artifact = "com.google.protobuf:protoc:3.28.3" // Match the installed protoc version
-//    }
-//}
-
-//protobuf {
-//    protoc {
-//        artifact = 'com.google.protobuf:protoc:4.29.1'  // Use the latest version of protoc
-//    }
-//    generateProtoTasks {
-//        all().each { task ->
-//            // Specify the output directory for generated Java files
-//            task.builtins {
-//                java {
-//                    option 'lite'  // Optional: use lite runtime if desired
-//                }
-//            }
-//        }
-//    }
-//    generatedFilesBaseDir = "$projectDir/src/generated"  // Specify base directory for generated files
-//}
-
-
 group 'com.tuberlin'
-version '1.1.0-SNAPSHOT'
+version '1.2.0-SNAPSHOT'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -109,17 +100,3 @@ configurations.all {
         force 'com.google.protobuf:protobuf-java:4.29.1'
     }
 }
-
-
-//tasks.named('quarkusDev') {
-//    systemProperty 'quarkus.profile', 'experiment'
-//}
-
-
-//sourceSets {
-//    main {
-//        java {
-//            srcDirs += "$projectDir/src/generated/main/java"
-//        }
-//    }
-//}

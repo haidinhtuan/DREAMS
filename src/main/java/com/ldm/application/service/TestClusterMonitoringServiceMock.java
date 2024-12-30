@@ -4,6 +4,7 @@ import com.ldm.application.port.ClusterMonitoringService;
 import com.ldm.domain.model.K8sCluster;
 import com.ldm.domain.model.Microservice;
 import com.ldm.domain.model.testdata.ClusterData;
+import com.ldm.infrastructure.config.ActorSystemManager;
 import com.ldm.infrastructure.config.TestDataConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.Getter;
@@ -29,26 +30,32 @@ public class TestClusterMonitoringServiceMock implements ClusterMonitoringServic
 
     private final TestDataConfig testDataConfig;
 
+    private final ActorSystemManager actorSystemManager;
+
     @Override
     public void getMicroservicesFromCluster() {
         try {
             log.info("Getting test data from resource file: " + testDataConfig.file());
             ClusterData clusterData = this.testDataInitializer.getTestDataFromFile(testDataConfig.file());
 
-            K8sCluster k8sCluster = new K8sCluster(clusterData.clusterId(), clusterData.location());
+            K8sCluster k8sCluster = new K8sCluster(clusterData.getClusterId(), clusterData.getLocation());
 
-            // Set the K8sCluster details for each microservice and return the list
-            List<Microservice> microservices = clusterData.microservices().stream()
-                    .peek(microservice -> {
-                        microservice.setK8sCluster(k8sCluster);
-                        microservice.setName(microservice.getId());
-                    }).toList();
+            clusterData.getMicroservices().forEach(microservice -> {
+                microservice.setK8sCluster(k8sCluster);
+                microservice.setName(microservice.getId());
+            });
 
-            latencyToLDMs = clusterData.latencyToLDMs();
+            List<Microservice> microservices = clusterData.getMicroservices();
 
-            log.info("Data loaded for cluster ID: {}", clusterData.clusterId());
+            latencyToLDMs = clusterData.getLatencyToLDMs();
+
+            log.info("Data loaded for cluster ID: {}", clusterData.getClusterId());
 
             microservices.forEach(microservice -> this.microservicesCache.cacheMicroservice(microservice.getId(), microservice));
+
+            clusterData.setMicroservices(microservices);
+
+            this.actorSystemManager.getActorSystem().tell(new ActorSystemManager.InitCluster(clusterData));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

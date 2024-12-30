@@ -1,5 +1,6 @@
 package com.ldm.infrastructure.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ldm.application.port.MigrationMachine;
 import com.ldm.application.port.MigrationService;
 import com.ldm.application.service.ClusterLatencyCache;
@@ -41,11 +42,17 @@ public class ActorSystemsManagerProducer {
     @Inject
     MigrationService migrationService;
 
+    @Inject
+    ObjectMapper objectMapper;
+
     @ConfigProperty(name = "leader.election.mode")
     LeaderElectionModeEnum leaderElectionMode;
 
     @ConfigProperty(name = "leader.election.default-leader")
     String defaultLeader;
+
+    @Inject
+    DatasourceConfig datasourceConfig;
 
     @Getter
     @Setter
@@ -54,7 +61,7 @@ public class ActorSystemsManagerProducer {
     @Produces
     @Singleton
     public ActorSystemManager createActorSystemsManager() {
-        ActorSystemManager actorSystemManager = new ActorSystemManager(ldmConfig, clusterLatencyCache, raftClient, domainManager, migrationMapper, microserviceMapper);
+        ActorSystemManager actorSystemManager = new ActorSystemManager(ldmConfig, clusterLatencyCache, raftClient, domainManager, migrationMapper, microserviceMapper, objectMapper, datasourceConfig);
         RaftLeaderChangeHandler raftLeaderChangeHandler = new RaftLeaderChangeHandler(raftClient, domainManager, actorSystemManager);
         raftLeaderChangeHandler.setLeaderElectionModeEnum(leaderElectionMode);
         raftLeaderChangeHandler.setDefaultLeader(defaultLeader);

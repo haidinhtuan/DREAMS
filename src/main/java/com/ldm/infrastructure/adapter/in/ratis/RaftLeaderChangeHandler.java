@@ -88,6 +88,11 @@ public class RaftLeaderChangeHandler implements LeaderChangeHandler<RaftGroupMem
         return Uni.createFrom().completionStage(safeTransferLeadershipAsync(raftServer, request));
     }
 
+    @Override
+    public ActorSystemManager getActorSystemsManager() {
+        return this.actorSystemManager;
+    }
+
 
     public static CompletableFuture<Void> safeTransferLeadershipAsync(RaftServer raftServer, TransferLeadershipRequest request) {
         try {

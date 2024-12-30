@@ -22,6 +22,7 @@ quarkus:
         level: ${RATIS_LOG_LEVEL:WARN}
       "org.apache.ratis.server.raftserver": # Suppress leader election logs
         level: ${RATIS_LOG_LEVEL:WARN}
+      "org.hibernate": DEBUG
 #      "org.apache.pekko.receptionist": ${LOG_LEVEL:DEBUG}
 #      "org.apache.pekko.actor":  # Debug logs for Pekko actor components
 #        level: ${LOG_LEVEL:INFO}
@@ -41,7 +42,25 @@ quarkus:
       maximum-size: ${CACHE_CAFFEINE_MAXIMUM_SIZE:1000}
       expire-after-write: ${CACHE_CAFFEINE_EXPIRE_AFTER_WRITE:15M}
       expire-after-access: ${CACHE_CAFFEINE_EXPIRE_AFTER_ACCESS:30M}
-
+  datasource:
+    db-kind: ${DB_KIND:postgresql}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:passw0rd}
+    jdbc:
+      url: ${DB_JDBC_URL:jdbc:postgresql://localhost:5432/ldm_migrations}
+#  reactive: false
+    max-size: 10 # Maximum number of connections in the pool
+    min-size: 1  # Minimum number of connections in the pool
+    acquisition-timeout: 5 # Timeout in seconds for acquiring a connection
+  liquibase:
+    migrate-at-start: ${LIQUIBASE_MIGRATE_AT_START:true}
+    clean-at-start: ${LIQUIBASE_CLEAN_AT_START:true}   # Drops the schema before migration
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+  hibernate-orm:
+    database:
+      generation: ${DB_HIBERNATE_DB_GENERATION:none} #drop-and-create
+hibernate:
+  dialect: org.hibernate.dialect.PostgreSQLDialect
 # LDM Configuration
 ldm:
   id: ${LDM_ID:54f34e52-b466-49f8-b525-230cd107148b}
