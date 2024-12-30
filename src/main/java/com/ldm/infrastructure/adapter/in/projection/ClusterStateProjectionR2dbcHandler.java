@@ -2,6 +2,9 @@ package com.ldm.infrastructure.adapter.in.projection;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.ldm.domain.model.K8sCluster;
+import com.ldm.domain.model.Microservice;
 import com.ldm.domain.model.MigrationAction;
 import com.ldm.domain.model.testdata.ClusterData;
 import com.ldm.infrastructure.adapter.in.pekko.ClusterStateActor;
@@ -14,9 +17,12 @@ import org.apache.pekko.persistence.query.typed.EventEnvelope;
 import org.apache.pekko.projection.r2dbc.javadsl.R2dbcHandler;
 import org.apache.pekko.projection.r2dbc.javadsl.R2dbcSession;
 import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -31,7 +37,7 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
     @Override
     public CompletionStage<Done> process(R2dbcSession session, EventEnvelope<ClusterStateActor.Event> envelope) {
         ClusterStateActor.Event event = envelope.event();
-        log.debug(this.getClass().getSimpleName()+" - Handling event: {}", event);
+        log.debug(this.getClass().getSimpleName() + " - Handling event: {}", event);
 
         if (event instanceof ClusterStateActor.ClusterInitPerformed clusterInitPerformedEvent) {
             return handleClusterInit(session, clusterInitPerformedEvent);
@@ -81,34 +87,144 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
     private CompletionStage<Done> handleMigration(R2dbcSession session, ClusterStateActor.MigrationPerformed event) {
         log.debug("Migrated Microservice Projection: {}", event);
         MigrationAction migrationAction = event.migrationAction();
-        String updateSql = """
+
+        if (event.migrationAction().targetK8sCluster().getId().equalsIgnoreCase(ldmConfig.id())) {
+            return Mono.from(updateLDMState(session, migrationAction))
+                    .flatMap(result -> Mono.from(result.getRowsUpdated()))
+                    .flatMap(integer -> {
+                        log.debug("Rows updated: " + integer);
+                        return Flux.merge(updateMicroserviceAffinities(session, migrationAction))
+                                .collectList()
+                                .map(updatedMicroservices -> {
+                                    log.debug("Updated microservice rows: " + updatedMicroservices.size());
+                                    return Done.done();
+                                });
+                    }).toFuture();
+        }
+        return Flux.merge(updateMicroserviceAffinities(session, migrationAction))
+                .collectList()
+                .map(updatedMicroservices -> {
+                    log.debug("Updated microservice rows: " + updatedMicroservices.size());
+                    return Done.done();
+                }).toFuture();
+    }
+
+    public Publisher<? extends Result> updateLDMState(R2dbcSession session, MigrationAction migrationAction) {
+        String updateMicroserviceSql = """
                 UPDATE ldm_state
                 SET k8s_cluster_id = $1,
                     k8s_cluster_location = $2,
                     improvement_score = $3,
                     microservice_affinities = $4::jsonb,
-                    last_update = $5
-                WHERE ldm_id = $6 AND microservice_id = $7
+                    last_update = $5,
+                    ldm_id = $6
+                WHERE microservice_id = $7
                 """;
 
+        String affinitiesJson = null;
         try {
-            String affinitiesJson = objectMapper.writeValueAsString(migrationAction.microservice().getAffinities());
-            Publisher<? extends Result> execution = session.createStatement(updateSql)
-                    .bind("$1", migrationAction.targetK8sCluster().getId())
-                    .bind("$2", migrationAction.targetK8sCluster().getLocation())
-                    .bind("$3", migrationAction.improvementScore())
-                    .bind("$4", affinitiesJson)
-                    .bind("$5", migrationAction.createdAt())
-                    .bind("$6", ldmConfig.id())
-                    .bind("$7", migrationAction.microservice().getId())
-                    .execute();
-
-            return Mono.from(execution)
-                    .flatMap(result -> Mono.from(result.getRowsUpdated()))
-                    .then(Mono.just(Done.done()))
-                    .toFuture();
+            affinitiesJson = objectMapper.writeValueAsString(migrationAction.microservice().getAffinities());
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error serializing affinities to JSON", e);
+            return Mono.error(e);
         }
+
+        return session.createStatement(updateMicroserviceSql)
+                .bind("$1", migrationAction.targetK8sCluster().getId())
+                .bind("$2", migrationAction.targetK8sCluster().getLocation())
+                .bind("$3", migrationAction.improvementScore())
+                .bind("$4", affinitiesJson)
+                .bind("$5", migrationAction.createdAt())
+                .bind("$6", ldmConfig.id())
+                .bind("$7", migrationAction.microservice().getId())
+                .execute();
+    }
+
+    public List<Mono<Integer>> updateMicroserviceAffinities(R2dbcSession session, MigrationAction migrationAction) {
+        List<Mono<Integer>> updateMicroserviceAffinityList = new ArrayList<>();
+
+        migrationAction.microservice().getAffinities().forEach((microservice, affinityValue) -> {
+            String selectMicroserviceAffinitiesSql = """
+                    SELECT microservice_affinities
+                    FROM ldm_state
+                    WHERE ldm_id = $1 AND microservice_id = $2
+                    """;
+
+            updateMicroserviceAffinityList.add(
+                    Mono.from(session.createStatement(selectMicroserviceAffinitiesSql)
+                                    .bind("$1", ldmConfig.id())
+                                    .bind("$2", microservice.getId())
+                                    .execute())
+                            .flatMap(result -> Mono.from(result.map((row, rowMetadata) -> row.get("microservice_affinities", String.class))))
+                            .flatMap(currentAffinitiesJson -> {
+                                try {
+                                    // Parse current affinities JSON
+                                    ObjectNode affinitiesNode = (ObjectNode) objectMapper.readTree(currentAffinitiesJson);
+
+                                    // Identify and update keys that match the migrated microservice
+                                    Iterator<String> fieldNames = affinitiesNode.fieldNames();
+                                    List<String> keysToUpdate = new ArrayList<>();
+
+                                    while (fieldNames.hasNext()) {
+                                        String key = fieldNames.next();
+                                        if (key.contains(migrationAction.microservice().getId())) {
+                                            keysToUpdate.add(key);
+                                        }
+                                    }
+
+                                    for (String key : keysToUpdate) {
+                                        // Parse the `key` to extract microservice data
+                                        String[] keyParts = key.split(", ");
+                                        String id = keyParts[0].split("=")[1];
+                                        String name = keyParts[1].split("=")[1];
+                                        String clusterId = keyParts[3].split("=")[1];
+                                        String clusterLocation = keyParts[3].substring(keyParts[3].indexOf("(") + 1, keyParts[3].indexOf(")"));
+
+                                        // Construct updated Microservice object
+                                        Microservice updatedMicroservice = new Microservice(
+                                                id,
+                                                name,
+                                                false,
+                                                new K8sCluster(
+                                                        migrationAction.targetK8sCluster().getId(),
+                                                        migrationAction.targetK8sCluster().getLocation()
+                                                ),
+                                                null,
+                                                null,
+                                                0.0,
+                                                0.0
+                                        );
+
+                                        // Replace the old key with the updated Microservice's `toString()`
+                                        double value = affinitiesNode.get(key).asDouble();
+                                        affinitiesNode.remove(key);
+                                        affinitiesNode.putPOJO(updatedMicroservice.toString(), value);
+                                    }
+
+                                    // Convert the updated JSON node back to a string
+                                    String updatedAffinityJson = objectMapper.writeValueAsString(affinitiesNode);
+
+                                    // Update the database with the modified JSON
+                                    String updateAffinitiesSql = """
+                                            UPDATE ldm_state
+                                            SET microservice_affinities = $1::jsonb,
+                                                last_update = $2
+                                            WHERE ldm_id = $3 AND microservice_id = $4
+                                            """;
+
+                                    return Mono.from(session.createStatement(updateAffinitiesSql)
+                                                    .bind("$1", updatedAffinityJson)
+                                                    .bind("$2", migrationAction.createdAt())
+                                                    .bind("$3", ldmConfig.id())
+                                                    .bind("$4", microservice.getId())
+                                                    .execute())
+                                            .flatMap(result -> Mono.from(result.getRowsUpdated()));
+
+                                } catch (Exception e) {
+                                    return Mono.error(new RuntimeException("Error processing microservice affinities JSON", e));
+                                }
+                            })
+            );
+        });
+        return updateMicroserviceAffinityList;
     }
 }
