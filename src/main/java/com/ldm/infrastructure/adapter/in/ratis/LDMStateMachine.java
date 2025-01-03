@@ -78,6 +78,7 @@ public class LDMStateMachine extends BaseStateMachine implements MigrationMachin
                                     this.migrationService.executeMigration(migrationAction);
                                     log.debug("--------->> Microservices Cache AFTER proposal as LEADER: {}", microservicesCache);
                                     microservicesCache.outputCache();
+                                    this.leaderChangeHandler.getActorSystemsManager().getActorSystem().tell(new ActorSystemManager.PerformMigrationAction(migrationAction));
                                     return Message.valueOf("Transaction applied successfully for migractionAction: " + migrationAction);
                                 }
                                 log.debug("--------->> Microservices Cache AFTER proposal: {}", microservicesCache);

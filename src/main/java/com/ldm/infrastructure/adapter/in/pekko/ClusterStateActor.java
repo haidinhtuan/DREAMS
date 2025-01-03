@@ -1,12 +1,15 @@
 package com.ldm.infrastructure.adapter.in.pekko;
 
+import com.ldm.domain.model.ClusterState;
 import com.ldm.domain.model.K8sCluster;
 import com.ldm.domain.model.Microservice;
 import com.ldm.domain.model.MigrationAction;
 import com.ldm.domain.model.testdata.ClusterData;
 import com.ldm.shared.constants.LDMConstants;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.Behavior;
+import org.apache.pekko.actor.typed.javadsl.ActorContext;
+import org.apache.pekko.actor.typed.javadsl.Behaviors;
 import org.apache.pekko.persistence.typed.PersistenceId;
 import org.apache.pekko.persistence.typed.javadsl.CommandHandler;
 import org.apache.pekko.persistence.typed.javadsl.EventHandler;
@@ -18,9 +21,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-@Slf4j
 public class ClusterStateActor
         extends EventSourcedBehavior<ClusterStateActor.Command, ClusterStateActor.Event, ClusterStateActor.State> {
+
+    private final ActorContext<Command> context;
+    private final ActorRef<DurableStateClusterActor.Command> durableStateClusterActor;
 
     public interface Command {
     }
@@ -124,7 +129,7 @@ public class ClusterStateActor
                     && event.migrationAction.microservice().getK8sCluster().getId().equalsIgnoreCase(ldmId)
                     && !event.migrationAction.targetK8sCluster().getId().equalsIgnoreCase(ldmId)) {
                 // Microservice is on the current cluster, but has been moved to another cluster
-                this.microserviceClusterMap.remove(event.migrationAction.microservice().getId());
+                updatedMap.remove(event.migrationAction.microservice().getId());
             }
 
             // Update affinities
@@ -209,6 +214,13 @@ public class ClusterStateActor
                     ", versionNumber=" + versionNumber +
                     '}';
         }
+
+        public ClusterState toClusterState() {
+            return new ClusterState(this.microserviceClusterMap, this.versionNumber, this.lastEventCreatedAt);
+        }
+    }
+
+    public record NotifyStateChange(State updatedState) implements Command {
     }
 
     // Commands
@@ -229,12 +241,14 @@ public class ClusterStateActor
     }
 
     // Actor Creation
-    public static Behavior<Command> create(String persistenceId) {
-        return new ClusterStateActor(PersistenceId.ofUniqueId(persistenceId));
+    public static Behavior<Command> create(String persistenceId, ActorRef<DurableStateClusterActor.Command> durableStateClusterActor) {
+        return Behaviors.setup(ctx -> new ClusterStateActor(PersistenceId.ofUniqueId(persistenceId), durableStateClusterActor, ctx));
     }
 
-    private ClusterStateActor(PersistenceId persistenceId) {
+    private ClusterStateActor(PersistenceId persistenceId, ActorRef<DurableStateClusterActor.Command> durableStateClusterActor, ActorContext<Command> context) {
         super(persistenceId);
+        this.context = context;
+        this.durableStateClusterActor = durableStateClusterActor;
     }
 
     @Override
@@ -246,20 +260,26 @@ public class ClusterStateActor
     public CommandHandler<Command, Event, State> commandHandler() {
         return newCommandHandlerBuilder()
                 .forAnyState()
+                .onCommand(NotifyStateChange.class, (state, command) -> {
+                    context.getLog().info("State changed, notifying DurableStateClusterActor...");
+                    // Notify DurableStateClusterActor
+                    this.durableStateClusterActor.tell(new DurableStateClusterActor.PersistClusterState(command.updatedState.toClusterState()));
+
+                    return Effect().none();
+                })
                 .onCommand(InitCluster.class, (state, command) -> {
                     ClusterInitPerformed event = new ClusterInitPerformed(command.clusterData);
-
-                    return Effect().persist(event).thenRun(updatedState -> log.info("Cluster Init performed: " + event));
+                    return Effect().persist(event).thenRun(updatedState -> context.getLog().info("Cluster Init performed: " + event));
                 })
                 .onCommand(PerformMigrationAction.class, (state, command) -> {
                     MigrationPerformed event = new MigrationPerformed(
                             command.migrationAction);
                     return Effect().persist(event).thenRun(updatedState ->
-                            log.info("Migration performed: " + event)
+                            context.getLog().info("Migration performed: " + event)
                     );
                 })
                 .onCommand(GetState.class, (state, command) -> {
-                    log.info("Current State: " + state);
+                    context.getLog().info("Current State: " + state);
                     return Effect().none();
                 })
                 .build();
@@ -270,13 +290,15 @@ public class ClusterStateActor
         return newEventHandlerBuilder()
                 .forAnyState()
                 .onEvent(ClusterInitPerformed.class, (state, event) -> {
-                    log.debug("Applying event: " + event +
+                    context.getLog().debug("Applying event: " + event +
                             ", Current Version: " + state.getVersionNumber());
+                    State newState = state.apply(event);
+                    context.getSelf().tell(new NotifyStateChange(newState));
 
-                    return state.apply(event);
+                    return newState;
                 })
                 .onEvent(MigrationPerformed.class, (state, event) -> {
-                    log.debug("Applying event: " + event +
+                    context.getLog().debug("Applying event: " + event +
                             ", Current Version: " + state.getVersionNumber());
 
                     String id = persistenceId().id();
@@ -286,12 +308,15 @@ public class ClusterStateActor
                     String ldmId = "";
                     if (id.startsWith(prefix)) {
                         ldmId = id.substring(prefix.length());
-                        log.debug("Extracted value: " + ldmId);
+                        context.getLog().debug("Extracted value: " + ldmId);
                     } else {
-                        log.warn("The string does not start with the expected prefix.");
+                        context.getLog().warn("The string does not start with the expected prefix.");
                     }
 
-                    return state.apply(ldmId, event);
+                    State newState = state.apply(ldmId, event);
+                    context.getSelf().tell(new NotifyStateChange(newState));
+
+                    return newState;
                 })
                 .build();
     }
@@ -299,8 +324,8 @@ public class ClusterStateActor
     @Override
     public Set<String> tagsFor(Event event) {
         Set<String> tags = new HashSet<>();
-        log.debug("Tagging the following event: {}", event);
-        log.debug("Tagging persisted event with: {}", persistenceId().id());
+        context.getLog().debug("Tagging the following event: {}", event);
+        context.getLog().debug("Tagging persisted event with: {}", persistenceId().id());
         tags.add(LDMConstants.EVENT_TAG_CLUSTER_STATE + "-" + persistenceId().id());
         return tags;
     }

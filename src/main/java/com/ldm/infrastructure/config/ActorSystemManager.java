@@ -6,10 +6,7 @@ import com.ldm.application.service.ClusterLatencyCache;
 import com.ldm.application.service.DomainManager;
 import com.ldm.domain.model.MigrationAction;
 import com.ldm.domain.model.testdata.ClusterData;
-import com.ldm.infrastructure.adapter.in.pekko.ClusterMembershipSync;
-import com.ldm.infrastructure.adapter.in.pekko.ClusterStateActor;
-import com.ldm.infrastructure.adapter.in.pekko.MigrationProposalVoter;
-import com.ldm.infrastructure.adapter.in.pekko.PingService;
+import com.ldm.infrastructure.adapter.in.pekko.*;
 import com.ldm.infrastructure.adapter.in.projection.ClusterStateProjectionR2dbcHandler;
 import com.ldm.infrastructure.adapter.in.ratis.LDMStateMachine;
 import com.ldm.infrastructure.adapter.out.pekko.PingManager;
@@ -32,6 +29,7 @@ import org.apache.pekko.cluster.ClusterEvent;
 import org.apache.pekko.persistence.query.Offset;
 import org.apache.pekko.persistence.query.typed.EventEnvelope;
 import org.apache.pekko.persistence.r2dbc.query.javadsl.R2dbcReadJournal;
+import org.apache.pekko.persistence.typed.PersistenceId;
 import org.apache.pekko.projection.Projection;
 import org.apache.pekko.projection.ProjectionBehavior;
 import org.apache.pekko.projection.ProjectionId;
@@ -116,8 +114,13 @@ public class ActorSystemManager {
 
             final String PERSISTENCE_ID = LDMConstants.EVENT_TAG_CLUSTER_STATE + "-" + ldmConfig.id();
 
+            ActorRef<DurableStateClusterActor.Command> durableStateClusterActor = context.spawn(
+                    DurableStateClusterActor.create(PersistenceId.ofUniqueId("durable-cluster-state-" + ldmConfig.id())),
+                    "DurableStateClusterActor"
+            );
+
             ActorRef<ClusterStateActor.Command> clusterStateActor = context.spawn(
-                    ClusterStateActor.create(PERSISTENCE_ID),
+                    ClusterStateActor.create(PERSISTENCE_ID, durableStateClusterActor),
                     "ClusterStateActor"
             );
 
