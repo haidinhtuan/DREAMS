@@ -55,68 +55,6 @@ public class ClusterStateActor
             this.lastSuggester = eventSuggester;
         }
 
-//        public State apply(String ldmId, MigrationPerformed event) {
-//            Map<String, Microservice> updatedMap = new HashMap<>(microserviceClusterMap);
-//
-//            if (this.microserviceClusterMap.get(event.migrationAction.microservice().getId()) == null
-//                    && event.migrationAction.targetK8sCluster().getId().equalsIgnoreCase(ldmId)) {
-//                // Microservice is not on the current cluster, but should be migrated to this cluster
-//                updatedMap.put(event.migrationAction.microservice().getId(), event.migrationAction.microservice());
-//            } else if (this.microserviceClusterMap.get(event.migrationAction.microservice().getId()) != null
-//                    && event.migrationAction.microservice().getK8sCluster().getId().equalsIgnoreCase(ldmId)
-//                    && !event.migrationAction.targetK8sCluster().getId().equalsIgnoreCase(ldmId)) {
-//                // Microservice is on the current cluster, but has been moved to another cluster
-//                this.microserviceClusterMap.remove(event.migrationAction.microservice().getId());
-//            } // Else do nothing if the cluster is not affected
-//
-//            // Update affinities
-//            for (Map.Entry<String, Microservice> entry : updatedMap.entrySet()) {
-//                Microservice microservice = entry.getValue();
-//
-//                if (microservice.getAffinities().containsKey(event.migrationAction.microservice())) {
-//                    // Create a new instance of K8sCluster with updated values only when needed
-//                    K8sCluster updatedCluster = new K8sCluster(
-//                            event.migrationAction.targetK8sCluster().getId(),
-//                            event.migrationAction.targetK8sCluster().getLocation()
-//                    );
-//
-//                    // Create a new affinities map with updated cluster information
-//                    Map<Microservice, Double> updatedAffinities = new HashMap<>(microservice.getAffinities());
-//                    updatedAffinities.forEach((affinityMicroservice, value) -> {
-//                        if (affinityMicroservice.getId().equalsIgnoreCase(event.migrationAction.microservice().getId())) {
-//                            // Replace affinityMicroservice with a new instance having updated cluster info
-//                            Microservice updatedAffinityMicroservice = new Microservice(
-//                                    affinityMicroservice.getId(),
-//                                    affinityMicroservice.getName(),
-//                                    affinityMicroservice.isNonMigratable(),
-//                                    updatedCluster,
-//                                    affinityMicroservice.getAffinities(),
-//                                    affinityMicroservice.getDataExchangedWithServices(),
-//                                    affinityMicroservice.getCpuUsage(),
-//                                    affinityMicroservice.getMemoryUsage()
-//                            );
-//                            updatedAffinities.remove(affinityMicroservice);
-//                            updatedAffinities.put(updatedAffinityMicroservice, value);
-//                        }
-//                    });
-//
-//                    // Create a new microservice with updated affinities and replace it in the map
-//                    Microservice updatedMicroservice = new Microservice(
-//                            microservice.getId(),
-//                            microservice.getName(),
-//                            microservice.isNonMigratable(),
-//                            microservice.getK8sCluster(),
-//                            updatedAffinities,
-//                            microservice.getDataExchangedWithServices(),
-//                            microservice.getCpuUsage(),
-//                            microservice.getMemoryUsage()
-//                    );
-//                    updatedMap.put(entry.getKey(), updatedMicroservice);
-//                }
-//            }
-//            return new State(updatedMap, versionNumber + 1, event.migrationAction.suggestedAt(), event.migrationAction.suggesterId()); // Increment version on each event
-//        }
-
         public State apply(String ldmId, MigrationPerformed event) {
             Map<String, Microservice> updatedMap = new HashMap<>(microserviceClusterMap);
 
@@ -131,55 +69,6 @@ public class ClusterStateActor
                 // Microservice is on the current cluster, but has been moved to another cluster
                 updatedMap.remove(event.migrationAction.microservice().getId());
             }
-
-            // Update affinities
-//            for (Map.Entry<String, Microservice> entry : updatedMap.entrySet()) {
-//                Microservice microservice = entry.getValue();
-//
-//                if (microservice.getAffinities().containsKey(event.migrationAction.microservice())) {
-//                    // Prepare updates for the affinities
-//                    Map<Microservice, Double> updatedAffinities = new HashMap<>();
-//                    for (Map.Entry<Microservice, Double> affinityEntry : microservice.getAffinities().entrySet()) {
-//                        Microservice affinityMicroservice = affinityEntry.getKey();
-//                        Double affinityValue = affinityEntry.getValue();
-//
-//                        if (affinityMicroservice.getId().equalsIgnoreCase(event.migrationAction.microservice().getId())) {
-//                            // Create a new instance of the affinity microservice with updated cluster info
-//                            Microservice updatedAffinityMicroservice = new Microservice(
-//                                    affinityMicroservice.getId(),
-//                                    affinityMicroservice.getName(),
-//                                    affinityMicroservice.isNonMigratable(),
-//                                    new K8sCluster(
-//                                            event.migrationAction.targetK8sCluster().getId(),
-//                                            event.migrationAction.targetK8sCluster().getLocation()
-//                                    ),
-//                                    affinityMicroservice.getAffinities(),
-//                                    affinityMicroservice.getDataExchangedWithServices(),
-//                                    affinityMicroservice.getCpuUsage(),
-//                                    affinityMicroservice.getMemoryUsage()
-//                            );
-//                            updatedAffinities.put(updatedAffinityMicroservice, affinityValue);
-//                        } else {
-//                            // Retain unchanged affinities
-//                            updatedAffinities.put(affinityMicroservice, affinityValue);
-//                        }
-//                    }
-//
-//                    // Create a new microservice with updated affinities and replace it in the map
-//                    Microservice updatedMicroservice = new Microservice(
-//                            microservice.getId(),
-//                            microservice.getName(),
-//                            microservice.isNonMigratable(),
-//                            microservice.getK8sCluster(),
-//                            updatedAffinities,
-//                            microservice.getDataExchangedWithServices(),
-//                            microservice.getCpuUsage(),
-//                            microservice.getMemoryUsage()
-//                    );
-//                    updatedMap.put(entry.getKey(), updatedMicroservice);
-//                }
-//            }
-
             return new State(updatedMap, versionNumber + 1, event.migrationAction.suggestedAt(), event.migrationAction.suggesterId()); // Increment version on each event
         }
 
