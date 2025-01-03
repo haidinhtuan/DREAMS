@@ -102,3 +102,18 @@ kill 75605
 # Force Kill
 lsof -i :6000 | awk 'NR>1 {print $2}' | xargs kill -9
 ```
+
+# Running the Experiments
+
+Make sure that only the first started LDM sets up the database schema by setting these environment variables for Liquibase:
+
+```
+LIQUIBASE_MIGRATE_AT_START=true
+LIQUIBASE_CLEAN_AT_START=true  # Drops the schema before migration
+```
+
+The other LDMs should have these variables set to `false`. Otherwise, inconsistencies might occur in the database.
+
+
+
+

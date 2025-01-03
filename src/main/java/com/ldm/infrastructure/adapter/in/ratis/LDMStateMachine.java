@@ -7,6 +7,7 @@ import com.ldm.application.port.MigrationMachine;
 import com.ldm.application.port.MigrationService;
 import com.ldm.application.service.MicroservicesCache;
 import com.ldm.domain.model.MigrationAction;
+import com.ldm.infrastructure.config.ActorSystemManager;
 import com.ldm.infrastructure.mapper.MigrationMapper;
 import com.ldm.infrastructure.serialization.protobuf.MigrationActionOuterClass;
 import io.smallrye.mutiny.Uni;
@@ -61,7 +62,7 @@ public class LDMStateMachine extends BaseStateMachine implements MigrationMachin
                     MigrationActionOuterClass.MigrationAction protoMigrationAction;
                     try {
                         protoMigrationAction = MigrationActionOuterClass.MigrationAction.parseFrom(data);
-                        log.debug("RECEIVED protoMigrationAction:: {}", protoMigrationAction);
+                        log.debug("RECEIVED protoMigrationAction: {}", protoMigrationAction);
                     } catch (InvalidProtocolBufferException e) {
                         return Uni.createFrom().failure(e);
                     }
@@ -77,10 +78,14 @@ public class LDMStateMachine extends BaseStateMachine implements MigrationMachin
                                     this.migrationService.executeMigration(migrationAction);
                                     log.debug("--------->> Microservices Cache AFTER proposal as LEADER: {}", microservicesCache);
                                     microservicesCache.outputCache();
+                                    this.leaderChangeHandler.getActorSystemsManager().getActorSystem().tell(new ActorSystemManager.PerformMigrationAction(migrationAction));
                                     return Message.valueOf("Transaction applied successfully for migractionAction: " + migrationAction);
                                 }
                                 log.debug("--------->> Microservices Cache AFTER proposal: {}", microservicesCache);
                                 microservicesCache.outputCache();
+
+                                this.leaderChangeHandler.getActorSystemsManager().getActorSystem().tell(new ActorSystemManager.PerformMigrationAction(migrationAction));
+
                                 return Message.valueOf("Transaction applied without leader-specific actions.");
                             });
                 })
@@ -134,14 +139,14 @@ public class LDMStateMachine extends BaseStateMachine implements MigrationMachin
         long startIndex = raftLog.getStartIndex();
         long endIndex = raftLog.getLastCommittedIndex();
 
-        System.out.println("Reading Raft log entries from index " + startIndex + " to " + endIndex);
+        log.info("Reading Raft log entries from index " + startIndex + " to " + endIndex);
 
         for (long index = startIndex; index <= endIndex; index++) {
             RaftProtos.LogEntryProto entry = raftLog.get(index);
             if (entry != null) {
                 logEntries.add(entry);
             } else {
-                System.out.println("No entry found at index: " + index);
+                log.info("No entry found at index: " + index);
             }
         }
 
