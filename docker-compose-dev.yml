@@ -68,9 +68,9 @@ services:
       - CACHE_CAFFEINE_EXPIRE_AFTER_WRITE=15M
       - CACHE_CAFFEINE_EXPIRE_AFTER_ACCESS=30M
       - LDM_LATENCY_CHECK_TIMEOUT=5
-      - LDM_LATENCY_CHECK_INTERVAL=10
+      - LDM_LATENCY_CHECK_INTERVAL=15
       - LDM_LATENCY_CHECK_MAX_RETRY=3
-      - LDM_PROPOSAL_INTERVAL=10
+      - LDM_PROPOSAL_INTERVAL=15
       - LDM_PROPOSAL_REQUEST_TIMEOUT=20
       - LDM_PROPOSAL_THRESHOLD=0.2
       - LDM_PROPOSAL_SCALING_FACTOR=20
@@ -96,7 +96,7 @@ services:
 #      - CLUSTER_SEED_NODE=pekko://ClusterSystem@ldm1:6000
       - PEKKO_PORT=6001
       - CLUSTER_SEED_NODE=pekko://ClusterSystem@host.docker.internal:6000
-      - LEADER_ELECTION_MODE=TESTING
+      - LEADER_ELECTION_MODE=DEFAULT
       - DEFAULT_LEADER=66472086-5a7b-461e-883e-2d4d4763e34d
       - LOG_LEVEL=DEBUG
       - RATIS_LOG_LEVEL=WARN
@@ -106,8 +106,8 @@ services:
       - LIQUIBASE_MIGRATE_AT_START=false
       - LIQUIBASE_CLEAN_AT_START=false
     volumes:
-      - ./experiments/exp3/LDM2.json:/data/LDM2.json
-      - ./experiments/exp3/ldm2/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm2
+      - ./experiments/exp4/LDM2.json:/data/LDM2.json
+      - ./experiments/exp4/ldm2/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm2
 #    depends_on:
 #      - ldm1
 
@@ -130,9 +130,9 @@ services:
       - CACHE_CAFFEINE_EXPIRE_AFTER_WRITE=15M
       - CACHE_CAFFEINE_EXPIRE_AFTER_ACCESS=30M
       - LDM_LATENCY_CHECK_TIMEOUT=5
-      - LDM_LATENCY_CHECK_INTERVAL=10
+      - LDM_LATENCY_CHECK_INTERVAL=15
       - LDM_LATENCY_CHECK_MAX_RETRY=3
-      - LDM_PROPOSAL_INTERVAL=10
+      - LDM_PROPOSAL_INTERVAL=15
       - LDM_PROPOSAL_REQUEST_TIMEOUT=20
       - LDM_PROPOSAL_THRESHOLD=0.2
       - LDM_PROPOSAL_SCALING_FACTOR=20
@@ -166,8 +166,8 @@ services:
       - LIQUIBASE_MIGRATE_AT_START=false
       - LIQUIBASE_CLEAN_AT_START=false
     volumes:
-      - ./experiments/exp3/LDM3.json:/data/LDM3.json
-      - ./experiments/exp3/ldm3/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm3
+      - ./experiments/exp4/LDM3.json:/data/LDM3.json
+      - ./experiments/exp4/ldm3/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm3
 #    depends_on:
 #      - ldm1
   postgresql:

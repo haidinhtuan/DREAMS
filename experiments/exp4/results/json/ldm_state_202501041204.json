@@ -1,0 +1,103 @@
+{
+"ldm_state": [
+	{
+		"ldm_id" : "66472086-5a7b-461e-883e-2d4d4763e34d",
+		"microservice_id" : "MS8",
+		"k8s_cluster_id" : "66472086-5a7b-461e-883e-2d4d4763e34d",
+		"k8s_cluster_location" : "Singapore",
+		"improvement_score" : 0.0,
+		"microservice_affinities" : "{\"Microservice{id='MS4', name='MS4', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 25.0, \"Microservice{id='MS9', name='MS9', isNonMigratable=false, k8sCluster=66472086-5a7b-461e-883e-2d4d4763e34d (Singapore), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 95.0}",
+		"last_update" : "2025-01-04T08:52:42.904Z",
+		"created_at" : "2025-01-04T08:52:42.904Z"
+	},
+	{
+		"ldm_id" : "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+		"microservice_id" : "MS4",
+		"k8s_cluster_id" : "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+		"k8s_cluster_location" : "Berlin",
+		"improvement_score" : 0.0,
+		"microservice_affinities" : "{\"Microservice{id='MS5', name='MS5', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 90.0, \"Microservice{id='MS1', name='MS1', isNonMigratable=false, k8sCluster=54f34e52-b466-49f8-b525-230cd107148b (New York), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 75.0, \"Microservice{id='MS8', name='MS8', isNonMigratable=false, k8sCluster=66472086-5a7b-461e-883e-2d4d4763e34d (Singapore), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 25.0}",
+		"last_update" : "2025-01-04T08:52:42.910Z",
+		"created_at" : "2025-01-04T08:52:42.910Z"
+	},
+	{
+		"ldm_id" : "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+		"microservice_id" : "MS5",
+		"k8s_cluster_id" : "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+		"k8s_cluster_location" : "Berlin",
+		"improvement_score" : 0.0,
+		"microservice_affinities" : "{\"Microservice{id='MS4', name='MS4', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 90.0, \"Microservice{id='MS6', name='MS6', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 90.0, \"Microservice{id='MS1', name='MS1', isNonMigratable=false, k8sCluster=54f34e52-b466-49f8-b525-230cd107148b (New York), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 70.0, \"Microservice{id='MS2', name='MS2', isNonMigratable=false, k8sCluster=54f34e52-b466-49f8-b525-230cd107148b (New York), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 10.0, \"Microservice{id='MS9', name='MS9', isNonMigratable=false, k8sCluster=66472086-5a7b-461e-883e-2d4d4763e34d (Singapore), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 50.0}",
+		"last_update" : "2025-01-04T08:52:42.910Z",
+		"created_at" : "2025-01-04T08:52:42.910Z"
+	},
+	{
+		"ldm_id" : "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+		"microservice_id" : "MS6",
+		"k8s_cluster_id" : "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+		"k8s_cluster_location" : "Berlin",
+		"improvement_score" : 0.0,
+		"microservice_affinities" : "{\"Microservice{id='MS5', name='MS5', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 90.0, \"Microservice{id='MS7', name='MS7', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 90.0, \"Microservice{id='MS9', name='MS9', isNonMigratable=false, k8sCluster=66472086-5a7b-461e-883e-2d4d4763e34d (Singapore), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 60.0}",
+		"last_update" : "2025-01-04T08:52:42.911Z",
+		"created_at" : "2025-01-04T08:52:42.911Z"
+	},
+	{
+		"ldm_id" : "54f34e52-b466-49f8-b525-230cd107148b",
+		"microservice_id" : "MS2",
+		"k8s_cluster_id" : "54f34e52-b466-49f8-b525-230cd107148b",
+		"k8s_cluster_location" : "New York",
+		"improvement_score" : 0.0,
+		"microservice_affinities" : "{\"Microservice{id='MS5', name='MS5', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 10.0, \"Microservice{id='MS1', name='MS1', isNonMigratable=false, k8sCluster=54f34e52-b466-49f8-b525-230cd107148b (New York), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 90.0, \"Microservice{id=''MS3'', name=''MS3'', isNonMigratable=false, k8sCluster=54f34e52-b466-49f8-b525-230cd107148b (New York), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 90.0}",
+		"last_update" : "2025-01-04T08:53:25.666Z",
+		"created_at" : "2025-01-04T09:52:40.931Z"
+	},
+	{
+		"ldm_id" : "54f34e52-b466-49f8-b525-230cd107148b",
+		"microservice_id" : "MS1",
+		"k8s_cluster_id" : "54f34e52-b466-49f8-b525-230cd107148b",
+		"k8s_cluster_location" : "New York",
+		"improvement_score" : 0.0,
+		"microservice_affinities" : "{\"Microservice{id='MS4', name='MS4', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 75.0, \"Microservice{id='MS5', name='MS5', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 70.0, \"Microservice{id='MS2', name='MS2', isNonMigratable=false, k8sCluster=54f34e52-b466-49f8-b525-230cd107148b (New York), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 90.0, \"Microservice{id=''MS3'', name=''MS3'', isNonMigratable=false, k8sCluster=54f34e52-b466-49f8-b525-230cd107148b (New York), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 90.0}",
+		"last_update" : "2025-01-04T08:53:25.666Z",
+		"created_at" : "2025-01-04T09:52:40.931Z"
+	},
+	{
+		"ldm_id" : "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+		"microservice_id" : "MS7",
+		"k8s_cluster_id" : "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+		"k8s_cluster_location" : "Berlin",
+		"improvement_score" : 0.0,
+		"microservice_affinities" : "{\"Microservice{id='MS6', name='MS6', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 90.0, \"Microservice{id=''MS3'', name=''MS3'', isNonMigratable=false, k8sCluster=54f34e52-b466-49f8-b525-230cd107148b (New York), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 60.0, \"Microservice{id=''MS10'', name=''MS10'', isNonMigratable=false, k8sCluster=66472086-5a7b-461e-883e-2d4d4763e34d (Singapore), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 40.0}",
+		"last_update" : "2025-01-04T08:53:25.666Z",
+		"created_at" : "2025-01-04T08:52:42.911Z"
+	},
+	{
+		"ldm_id" : "66472086-5a7b-461e-883e-2d4d4763e34d",
+		"microservice_id" : "MS10",
+		"k8s_cluster_id" : "66472086-5a7b-461e-883e-2d4d4763e34d",
+		"k8s_cluster_location" : "Singapore",
+		"improvement_score" : 52.886119023364984,
+		"microservice_affinities" : "{\"Microservice{id='MS7', name='MS7', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 40.0, \"Microservice{id='MS9', name='MS9', isNonMigratable=false, k8sCluster=66472086-5a7b-461e-883e-2d4d4763e34d (Singapore), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 95.0, \"Microservice{id=''MS3'', name=''MS3'', isNonMigratable=false, k8sCluster=54f34e52-b466-49f8-b525-230cd107148b (New York), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 5.0}",
+		"last_update" : "2025-01-04T08:53:25.666Z",
+		"created_at" : "2025-01-04T08:52:42.911Z"
+	},
+	{
+		"ldm_id" : "66472086-5a7b-461e-883e-2d4d4763e34d",
+		"microservice_id" : "MS9",
+		"k8s_cluster_id" : "66472086-5a7b-461e-883e-2d4d4763e34d",
+		"k8s_cluster_location" : "Singapore",
+		"improvement_score" : 0.0,
+		"microservice_affinities" : "{\"Microservice{id='MS5', name='MS5', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 50.0, \"Microservice{id='MS6', name='MS6', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 60.0, \"Microservice{id='MS8', name='MS8', isNonMigratable=false, k8sCluster=66472086-5a7b-461e-883e-2d4d4763e34d (Singapore), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 95.0, \"Microservice{id=''MS10'', name=''MS10'', isNonMigratable=false, k8sCluster=66472086-5a7b-461e-883e-2d4d4763e34d (Singapore), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 10.0}",
+		"last_update" : "2025-01-04T08:52:55.480Z",
+		"created_at" : "2025-01-04T08:52:42.904Z"
+	},
+	{
+		"ldm_id" : "54f34e52-b466-49f8-b525-230cd107148b",
+		"microservice_id" : "MS3",
+		"k8s_cluster_id" : "54f34e52-b466-49f8-b525-230cd107148b",
+		"k8s_cluster_location" : "New York",
+		"improvement_score" : 81.48409323918864,
+		"microservice_affinities" : "{\"Microservice{id='MS7', name='MS7', isNonMigratable=false, k8sCluster=36f06b8b-cd19-4c72-a9a6-2f37baf4a422 (Berlin), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 60.0, \"Microservice{id='MS1', name='MS1', isNonMigratable=false, k8sCluster=54f34e52-b466-49f8-b525-230cd107148b (New York), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 90.0, \"Microservice{id='MS2', name='MS2', isNonMigratable=false, k8sCluster=54f34e52-b466-49f8-b525-230cd107148b (New York), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 90.0, \"Microservice{id='MS10', name='MS10', isNonMigratable=false, k8sCluster=66472086-5a7b-461e-883e-2d4d4763e34d (Singapore), affinities=null, dataExchangedWithServices=null, cpuUsage=0.0, memoryUsage=0.0}\": 95.0}",
+		"last_update" : "2025-01-04T08:53:25.666Z",
+		"created_at" : "2025-01-04T08:52:42.904Z"
+	}
+]}
