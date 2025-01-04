@@ -1,0 +1,36 @@
+{
+"durable_state": [
+	{
+		"slice" : 1008,
+		"entity_type" : "",
+		"persistence_id" : "durable-cluster-state-36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+		"revision" : 3,
+		"db_timestamp" : "2025-01-04T09:53:25.721Z",
+		"state_ser_id" : 31,
+		"state_ser_manifest" : "com.ldm.domain.model.ClusterState",
+		"state_payload" : "{\"microservices\":{\"MS7\":{\"id\":\"MS7\",\"isNonMigratable\":false,\"affinities\":{\"MS10\":{\"name\":\"MS10\",\"value\":40.0,\"k8sCluster\":{\"id\":\"66472086-5a7b-461e-883e-2d4d4763e34d\",\"location\":\"Singapore\"}},\"MS3\":{\"name\":\"MS3\",\"value\":60.0,\"k8sCluster\":{\"id\":\"54f34e52-b466-49f8-b525-230cd107148b\",\"location\":\"New York\"}},\"MS6\":{\"name\":\"MS6\",\"value\":90.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}}}},\"MS6\":{\"id\":\"MS6\",\"isNonMigratable\":false,\"affinities\":{\"MS7\":{\"name\":\"MS7\",\"value\":90.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}},\"MS9\":{\"name\":\"MS9\",\"value\":60.0,\"k8sCluster\":{\"id\":\"66472086-5a7b-461e-883e-2d4d4763e34d\",\"location\":\"Singapore\"}},\"MS5\":{\"name\":\"MS5\",\"value\":90.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}}}},\"MS5\":{\"id\":\"MS5\",\"isNonMigratable\":false,\"affinities\":{\"MS9\":{\"name\":\"MS9\",\"value\":50.0,\"k8sCluster\":{\"id\":\"66472086-5a7b-461e-883e-2d4d4763e34d\",\"location\":\"Singapore\"}},\"MS2\":{\"name\":\"MS2\",\"value\":10.0,\"k8sCluster\":{\"id\":\"54f34e52-b466-49f8-b525-230cd107148b\",\"location\":\"New York\"}},\"MS1\":{\"name\":\"MS1\",\"value\":70.0,\"k8sCluster\":{\"id\":\"54f34e52-b466-49f8-b525-230cd107148b\",\"location\":\"New York\"}},\"MS4\":{\"name\":\"MS4\",\"value\":90.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}},\"MS6\":{\"name\":\"MS6\",\"value\":90.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}}}},\"MS4\":{\"id\":\"MS4\",\"isNonMigratable\":false,\"affinities\":{\"MS8\":{\"name\":\"MS8\",\"value\":25.0,\"k8sCluster\":{\"id\":\"66472086-5a7b-461e-883e-2d4d4763e34d\",\"location\":\"Singapore\"}},\"MS1\":{\"name\":\"MS1\",\"value\":75.0,\"k8sCluster\":{\"id\":\"54f34e52-b466-49f8-b525-230cd107148b\",\"location\":\"New York\"}},\"MS5\":{\"name\":\"MS5\",\"value\":90.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}}}}},\"version\":3,\"lastUpdated\":\"2025-01-04T09:53:25.645004926\"}",
+		"tags" : null
+	},
+	{
+		"slice" : 877,
+		"entity_type" : "",
+		"persistence_id" : "durable-cluster-state-66472086-5a7b-461e-883e-2d4d4763e34d",
+		"revision" : 3,
+		"db_timestamp" : "2025-01-04T09:53:25.722Z",
+		"state_ser_id" : 31,
+		"state_ser_manifest" : "com.ldm.domain.model.ClusterState",
+		"state_payload" : "{\"microservices\":{\"MS10\":{\"id\":\"MS10\",\"isNonMigratable\":false,\"affinities\":{\"MS7\":{\"name\":\"MS7\",\"value\":40.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}},\"MS9\":{\"name\":\"MS9\",\"value\":95.0,\"k8sCluster\":{\"id\":\"66472086-5a7b-461e-883e-2d4d4763e34d\",\"location\":\"Singapore\"}},\"MS3\":{\"name\":\"MS3\",\"value\":5.0,\"k8sCluster\":{\"id\":\"54f34e52-b466-49f8-b525-230cd107148b\",\"location\":\"New York\"}}}},\"MS9\":{\"id\":\"MS9\",\"isNonMigratable\":false,\"affinities\":{\"MS8\":{\"name\":\"MS8\",\"value\":95.0,\"k8sCluster\":{\"id\":\"66472086-5a7b-461e-883e-2d4d4763e34d\",\"location\":\"Singapore\"}},\"MS10\":{\"name\":\"MS10\",\"value\":10.0,\"k8sCluster\":{\"id\":\"66472086-5a7b-461e-883e-2d4d4763e34d\",\"location\":\"Singapore\"}},\"MS6\":{\"name\":\"MS6\",\"value\":60.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}},\"MS5\":{\"name\":\"MS5\",\"value\":50.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}}}},\"MS8\":{\"id\":\"MS8\",\"isNonMigratable\":false,\"affinities\":{\"MS9\":{\"name\":\"MS9\",\"value\":95.0,\"k8sCluster\":{\"id\":\"66472086-5a7b-461e-883e-2d4d4763e34d\",\"location\":\"Singapore\"}},\"MS4\":{\"name\":\"MS4\",\"value\":25.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}}}}},\"version\":3,\"lastUpdated\":\"2025-01-04T09:53:25.645004926\"}",
+		"tags" : null
+	},
+	{
+		"slice" : 801,
+		"entity_type" : "",
+		"persistence_id" : "durable-cluster-state-54f34e52-b466-49f8-b525-230cd107148b",
+		"revision" : 3,
+		"db_timestamp" : "2025-01-04T09:53:25.744Z",
+		"state_ser_id" : 31,
+		"state_ser_manifest" : "com.ldm.domain.model.ClusterState",
+		"state_payload" : "{\"microservices\":{\"MS1\":{\"id\":\"MS1\",\"isNonMigratable\":false,\"affinities\":{\"MS2\":{\"name\":\"MS2\",\"value\":90.0,\"k8sCluster\":{\"id\":\"54f34e52-b466-49f8-b525-230cd107148b\",\"location\":\"New York\"}},\"MS4\":{\"name\":\"MS4\",\"value\":75.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}},\"MS3\":{\"name\":\"MS3\",\"value\":90.0,\"k8sCluster\":{\"id\":\"54f34e52-b466-49f8-b525-230cd107148b\",\"location\":\"New York\"}},\"MS5\":{\"name\":\"MS5\",\"value\":70.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}}}},\"MS3\":{\"id\":\"MS3\",\"isNonMigratable\":false,\"affinities\":{\"MS10\":{\"name\":\"MS10\",\"value\":95.0,\"k8sCluster\":{\"id\":\"66472086-5a7b-461e-883e-2d4d4763e34d\",\"location\":\"Singapore\"}},\"MS7\":{\"name\":\"MS7\",\"value\":60.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}},\"MS2\":{\"name\":\"MS2\",\"value\":90.0,\"k8sCluster\":{\"id\":\"54f34e52-b466-49f8-b525-230cd107148b\",\"location\":\"New York\"}},\"MS1\":{\"name\":\"MS1\",\"value\":90.0,\"k8sCluster\":{\"id\":\"54f34e52-b466-49f8-b525-230cd107148b\",\"location\":\"New York\"}}}},\"MS2\":{\"id\":\"MS2\",\"isNonMigratable\":false,\"affinities\":{\"MS1\":{\"name\":\"MS1\",\"value\":90.0,\"k8sCluster\":{\"id\":\"54f34e52-b466-49f8-b525-230cd107148b\",\"location\":\"New York\"}},\"MS3\":{\"name\":\"MS3\",\"value\":90.0,\"k8sCluster\":{\"id\":\"54f34e52-b466-49f8-b525-230cd107148b\",\"location\":\"New York\"}},\"MS5\":{\"name\":\"MS5\",\"value\":10.0,\"k8sCluster\":{\"id\":\"36f06b8b-cd19-4c72-a9a6-2f37baf4a422\",\"location\":\"Berlin\"}}}}},\"version\":3,\"lastUpdated\":\"2025-01-04T09:53:25.645004926\"}",
+		"tags" : null
+	}
+]}

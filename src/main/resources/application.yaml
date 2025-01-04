@@ -67,10 +67,10 @@ ldm:
   #enable-cluster-monitoring: ${LDM_ENABLE_CLUSTER_MONITORING:false}
   latencies-check:
     timeout: ${LDM_LATENCY_CHECK_TIMEOUT:5}
-    interval: ${LDM_LATENCY_CHECK_INTERVAL:10}
+    interval: ${LDM_LATENCY_CHECK_INTERVAL:15}
     max-retry: ${LDM_LATENCY_CHECK_MAX_RETRY:3}
   proposal:
-    interval: ${LDM_PROPOSAL_INTERVAL:10}
+    interval: ${LDM_PROPOSAL_INTERVAL:15}
     request-timeout: ${LDM_PROPOSAL_REQUEST_TIMEOUT:20}
     threshold: ${LDM_PROPOSAL_THRESHOLD:0.2}
     scaling-factor: ${LDM_PROPOSAL_SCALING_FACTOR:20}
@@ -100,9 +100,9 @@ raft:
 
 # Test Data
 testdata:
-  file: ${TEST_DATA_FILE:/Users/tienhungnguyen/private-repo/local-domain-manager/experiments/exp3/LDM1.json}
+  file: ${TEST_DATA_FILE:/Users/tienhungnguyen/private-repo/local-domain-manager/experiments/exp4/LDM1.json}
 
 leader:
   election:
-    mode: ${LEADER_ELECTION_MODE:TESTING}
+    mode: ${LEADER_ELECTION_MODE:DEFAULT}
     default-leader: ${DEFAULT_LEADER:66472086-5a7b-461e-883e-2d4d4763e34d}
