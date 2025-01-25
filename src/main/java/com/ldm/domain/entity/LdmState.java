@@ -10,14 +10,14 @@ import java.time.LocalDateTime;
 @Table(name = "ldm_state")
 @Data
 @NoArgsConstructor
+@IdClass(LdmStateId.class)
 public class LdmState {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
+    @Id
     @Column(name = "ldm_id")
     private String ldmId;
 
+    @Id
     @Column(name = "microservice_id")
     private String microserviceId;
 
@@ -30,7 +30,8 @@ public class LdmState {
     @Column(name = "improvement_score")
     private Double improvementScore;
 
-    @Column(name = "microservice_affinities", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "microservice_affinities", columnDefinition = "json")
     private String microserviceAffinities;
 
     @Column(name = "last_update")
