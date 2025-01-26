@@ -205,6 +205,7 @@ public class ClusterStateActor
                     State newState = state.apply(ldmId, event);
                     context.getSelf().tell(new NotifyStateChange(newState));
 
+
                     return newState;
                 })
                 .build();

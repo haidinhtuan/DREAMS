@@ -8,10 +8,12 @@ quarkus:
     category:
       "com.ldm":
         level: ${LOG_LEVEL:DEBUG}
-#      "io.quarkus.runtime.configuration":
-#        level: ${LOG_LEVEL:INFO}
       "org.apache.pekko":  # Enable debug logs for Apache Pekko
         level: ${LOG_LEVEL:INFO}
+      "org.apa.pek.per.r2d.que.sca.QueryDao":
+        level: INFO
+      "org.apa.pek.per.r2d.que.sca.R2dbcReadJournal":
+        level: INFO
       "org.apache.ratis":  # Base Ratis package
         level: ${RATIS_LOG_LEVEL:WARN}        # Adjust the level to WARN or ERROR to suppress INFO logs
       "org.apache.ratis.server": # Suppress logs related to the Raft server
@@ -23,13 +25,6 @@ quarkus:
       "org.apache.ratis.server.raftserver": # Suppress leader election logs
         level: ${RATIS_LOG_LEVEL:WARN}
       "org.hibernate": DEBUG
-#      "org.apache.pekko.receptionist": ${LOG_LEVEL:DEBUG}
-#      "org.apache.pekko.actor":  # Debug logs for Pekko actor components
-#        level: ${LOG_LEVEL:INFO}
-#      "org.apache.pekko.remote":  # Debug logs for Pekko remote communication
-#        level: ${LOG_LEVEL:INFO}
-#      "org.apache.pekko.cluster":  # Debug logs for Pekko cluster components
-#        level: ${LOG_LEVEL:INFO}
   container-image:
     build: true
     push: false
@@ -48,7 +43,6 @@ quarkus:
     password: ${DB_PASSWORD:passw0rd}
     jdbc:
       url: ${DB_JDBC_URL:jdbc:postgresql://localhost:5432/ldm_migrations}
-#  reactive: false
     max-size: 10 # Maximum number of connections in the pool
     min-size: 1  # Minimum number of connections in the pool
     acquisition-timeout: 5 # Timeout in seconds for acquiring a connection
@@ -72,7 +66,7 @@ ldm:
   proposal:
     interval: ${LDM_PROPOSAL_INTERVAL:15}
     request-timeout: ${LDM_PROPOSAL_REQUEST_TIMEOUT:20}
-    threshold: ${LDM_PROPOSAL_THRESHOLD:0.2}
+    threshold: ${LDM_PROPOSAL_THRESHOLD:25}
     scaling-factor: ${LDM_PROPOSAL_SCALING_FACTOR:20}
   voting:
     threshold: ${LDM_VOTING_THRESHOLD:0.3}
@@ -97,11 +91,9 @@ raft:
       - id: ${CLUSTER_PEER_3_ID:66472086-5a7b-461e-883e-2d4d4763e34d}
         host: ${CLUSTER_PEER_3_HOST:localhost}
         port: ${CLUSTER_PEER_3_PORT:4002}
-
 # Test Data
 testdata:
   file: ${TEST_DATA_FILE:/Users/tienhungnguyen/private-repo/local-domain-manager/experiments/exp4/LDM1.json}
-
 leader:
   election:
     mode: ${LEADER_ELECTION_MODE:DEFAULT}

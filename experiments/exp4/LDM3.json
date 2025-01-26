@@ -58,10 +58,10 @@
                 },
                 "MS10": {
                     "name": "MS10",
-                    "value": 10,
+                    "value": 95,
                     "k8sCluster": {
-                        "id": "66472086-5a7b-461e-883e-2d4d4763e34d",
-                        "location": "Singapore"
+                        "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422\"",
+                        "location": "Berlin"
                     }
                 }
             }
@@ -96,7 +96,7 @@
                 },
                 "MS10": {
                     "name": "MS10",
-                    "value": 95,
+                    "value": 5,
                     "k8sCluster": {
                         "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
                         "location": "Berlin"

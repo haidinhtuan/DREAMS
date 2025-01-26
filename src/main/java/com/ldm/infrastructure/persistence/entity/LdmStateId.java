@@ -1,4 +1,4 @@
-package com.ldm.domain.entity;
+package com.ldm.infrastructure.persistence.entity;
 
 import java.io.Serializable;
 import java.util.Objects;

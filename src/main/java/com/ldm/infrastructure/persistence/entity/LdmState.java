@@ -1,10 +1,12 @@
-package com.ldm.domain.entity;
+package com.ldm.infrastructure.persistence.entity;
 
+import com.ldm.infrastructure.persistence.converter.JsonConverter;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Entity
 @Table(name = "ldm_state")
@@ -30,9 +32,9 @@ public class LdmState {
     @Column(name = "improvement_score")
     private Double improvementScore;
 
-    @Lob
     @Column(name = "microservice_affinities", columnDefinition = "json")
-    private String microserviceAffinities;
+    @Convert(converter = JsonConverter.class)
+    private Map<String, Double> microserviceAffinities;
 
     @Column(name = "last_update")
     private LocalDateTime lastUpdate;
