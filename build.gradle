@@ -12,6 +12,7 @@ def versions = [
 ]
 
 dependencies {
+    implementation 'io.quarkus:quarkus-websockets'
     implementation 'io.quarkus:quarkus-config-yaml'
     implementation 'io.quarkus:quarkus-container-image-jib'
     implementation 'io.quarkus:quarkus-cache'
@@ -49,8 +50,8 @@ dependencies {
 
     implementation "org.apache.pekko:pekko-serialization-jackson_${versions.ScalaBinary}"
     // Hibernate ORM specific dependencies
-    implementation("io.quarkus:quarkus-hibernate-orm")
-
+    implementation("io.quarkus:quarkus-hibernate-orm-panache")
+//    implementation("io.quarkus:quarkus-hibernate-orm")
 
     // JDBC driver dependencies
     implementation("io.quarkus:quarkus-jdbc-postgresql")
@@ -70,7 +71,7 @@ dependencies {
 }
 
 group 'com.tuberlin'
-version '1.3.0-SNAPSHOT'
+version '2.0.0-SNAPSHOT'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17

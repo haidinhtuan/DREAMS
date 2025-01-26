@@ -84,6 +84,11 @@ The leader change has to be triggered on the current leader, e.g.:
 http://localhost:8080/api/ratis/trigger-leader-change/54f34e52-b466-49f8-b525-230cd107148b
 http://localhost:8081/api/ratis/trigger-leader-change/54f34e52-b466-49f8-b525-230cd107148b
 http://localhost:8082/api/ratis/trigger-leader-change/54f34e52-b466-49f8-b525-230cd107148b
+
+http://localhost:8082/api/ratis/trigger-leader-change/66472086-5a7b-461e-883e-2d4d4763e34d
+
+http://localhost:8082/api/ratis/trigger-leader-change/36f06b8b-cd19-4c72-a9a6-2f37baf4a422
+
 ```
 
 # REST APIs to read from the Raft Storage
@@ -114,6 +119,59 @@ LIQUIBASE_CLEAN_AT_START=true  # Drops the schema before migration
 
 The other LDMs should have these variables set to `false`. Otherwise, inconsistencies might occur in the database.
 
+<<<<<<< Updated upstream
+# Accessing the React Dashboard
 
+Access the dashboard to see the microservice graph with the migration statistics:
+```
+http://localhost:3000/graph
+```
+_The frontend will connect to this websocket of a LDM, e.g.: `localhost:8080/dashboard`_
+=======
+Furthermore, set `LEADER_ELECTION_MODE=DEFAULT` for a realistic scenario, where the leader election follows the Raft protocol. 
+The `LEADER_ELECTION_MODE=TESTING` is just used for quicker testing of the LDM core functionalities, where the leader election always goes to the `DEFAULT_LEADER`.
+
+## Experiment 1
+### Setting:
+- LEADER_ELECTION_MODE=DEFAULT (leader election follows the criteria of the Raft Protocol)
+
+### Description:
+-Best case scenario: All clusters are already optimal. Therefore, no migration is needed.
+
+### Goal:
+- Should not carry out any migration since all clusters are already optimal
+
+## Experiment 2
+### Setting:
+- LEADER_ELECTION_MODE=DEFAULT (leader election follows the criteria of the Raft Protocol)
+
+### Description:
+- Tests if `ldm2` makes a proper migration proposal, which should be approved by the `ldm1` and `ldm3`
+
+### Goal:
+- `MS3` should be migrated from `ldm2` in `Berlin (36f06b8b-cd19-4c72-a9a6-2f37baf4a422)` to `ldm1` in `New York (54f34e52-b466-49f8-b525-230cd107148b}` since it has the highest affinity to that cluster
+
+## Experiment 3
+### Setting:
+- LEADER_ELECTION_MODE=TESTING (leader election goes to the default leader) on `ldm1` and `ldm2`
+
+### Description:
+- Tests if `ldm3` makes a proper migration proposal, which should be approved by the `ldm1` and `ldm2`
+- `LEADER_ELECTION_MODE` is set to `testing` for quicker testing since the `DEFAULT_LEADER` is always elected by `ldm1` and `ldm2`, primarily used to test the core functionalities of the ldm
+
+### Goal:
+- `MS10` should be migrated from `ldm3` in `Singapore (66472086-5a7b-461e-883e-2d4d4763e34d)` to `ldm2` in `Berlin (36f06b8b-cd19-4c72-a9a6-2f37baf4a422)` since it has the highest affinity to that cluster
+
+## Experiment 4
+### Setting:
+- `LEADER_ELECTION_MODE=DEFAULT` (leader election follows the criteria of the Raft Protocol)
+
+### Description:
+- `MS3` and `MS10` should be migrated to the cluster where their affinity is highest
+
+### Goal:
+- `MS3` should be migrated from `ldm3` in `Singapore (66472086-5a7b-461e-883e-2d4d4763e34d)` to `ldm1` in `New York (54f34e52-b466-49f8-b525-230cd107148b}`
+- `MS10` should be migrated from `ldm2` in `Berlin (36f06b8b-cd19-4c72-a9a6-2f37baf4a422)` to `ldm3` in `Singapore (66472086-5a7b-461e-883e-2d4d4763e34d)`
+>>>>>>> Stashed changes
 
 

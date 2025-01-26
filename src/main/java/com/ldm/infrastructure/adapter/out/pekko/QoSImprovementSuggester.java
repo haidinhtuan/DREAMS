@@ -180,9 +180,11 @@ public class QoSImprovementSuggester {
                         localVoterRef,
                         migrationMapper,
                         listingResponseAdapter,
-                        timeout
+                        timeout,
+                        ldmStateMachine,
+                        leaderChangeHandler
                 ),
-                () -> triggerLeaderChangeIfNoMigration(ldmStateMachine, leaderChangeHandler)
+                () -> triggerLeaderChange(ldmStateMachine, leaderChangeHandler)
         );
     }
 
@@ -193,7 +195,9 @@ public class QoSImprovementSuggester {
             ActorRef<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal> localVoterRef,
             MigrationMapper migrationMapper,
             ActorRef<Receptionist.Listing> listingResponseAdapter,
-            Duration timeout
+            Duration timeout,
+            LDMStateMachine ldmStateMachine,
+            LeaderChangeHandler leaderChangeHandler
     ) {
         discoverInstances(context, timeout, MigrationProposalVoter.MIGRATION_PROPOSAL_VOTER_KEY, listingResponseAdapter)
                 .thenCompose(listing -> {
@@ -208,6 +212,8 @@ public class QoSImprovementSuggester {
                             .thenAccept(v -> {
                                 if (shouldMigrate(votes, remoteVoters.size())) {
                                     sendMigrationAction(migrationCandidate, migrationMapper, raftClient);
+                                } else {
+                                    triggerLeaderChange(ldmStateMachine, leaderChangeHandler);
                                 }
                             });
                 })
@@ -217,7 +223,7 @@ public class QoSImprovementSuggester {
                 });
     }
 
-    private static void triggerLeaderChangeIfNoMigration(
+    private static void triggerLeaderChange(
             LDMStateMachine LDMStateMachine,
             LeaderChangeHandler<RaftGroupMemberId, RaftPeerId, RaftServer, RaftGroupId> leaderChangeHandler
     ) {

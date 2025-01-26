@@ -7,10 +7,14 @@ import com.ldm.application.port.MigrationMachine;
 import com.ldm.application.port.MigrationService;
 import com.ldm.application.service.MicroservicesCache;
 import com.ldm.domain.model.MigrationAction;
+import com.ldm.infrastructure.adapter.in.websocket.DashboardWebSocket;
 import com.ldm.infrastructure.config.ActorSystemManager;
 import com.ldm.infrastructure.mapper.MigrationMapper;
 import com.ldm.infrastructure.serialization.protobuf.MigrationActionOuterClass;
+import com.ldm.shared.constants.MessageType;
 import io.smallrye.mutiny.Uni;
+import jakarta.json.Json;
+import jakarta.json.JsonObjectBuilder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +46,8 @@ public class LDMStateMachine extends BaseStateMachine implements MigrationMachin
     private final MigrationMapper migrationMapper;
 
     private final MicroservicesCache microservicesCache;
+
+    private final DashboardWebSocket dashboardWebSocket;
 
     /**
      * Processes migration actions
@@ -118,6 +124,10 @@ public class LDMStateMachine extends BaseStateMachine implements MigrationMachin
     @Override
     public void notifyLeaderChanged(RaftGroupMemberId groupMemberId, RaftPeerId newLeaderId) {
         log.info("Leader change detected: New leader is {}", newLeaderId);
+        JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
+        jsonObjectBuilder.add("New Leader", newLeaderId.toString());
+
+        this.dashboardWebSocket.broadcast(MessageType.LEADER_CHANGED, jsonObjectBuilder.build());
         try {
             // Delegate the handling of the leader change to RaftLeaderChangedHandler
             leaderChangeHandler.handleLeaderChangedEvent(groupMemberId, newLeaderId);

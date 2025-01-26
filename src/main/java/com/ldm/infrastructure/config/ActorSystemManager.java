@@ -4,11 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ldm.application.port.MigrationMachine;
 import com.ldm.application.service.ClusterLatencyCache;
 import com.ldm.application.service.DomainManager;
+import com.ldm.application.service.LdmStateService;
 import com.ldm.domain.model.MigrationAction;
 import com.ldm.domain.model.testdata.ClusterData;
 import com.ldm.infrastructure.adapter.in.pekko.*;
 import com.ldm.infrastructure.adapter.in.projection.ClusterStateProjectionR2dbcHandler;
 import com.ldm.infrastructure.adapter.in.ratis.LDMStateMachine;
+import com.ldm.infrastructure.adapter.in.websocket.DashboardWebSocket;
 import com.ldm.infrastructure.adapter.out.pekko.PingManager;
 import com.ldm.infrastructure.adapter.out.pekko.QoSImprovementSuggester;
 import com.ldm.infrastructure.mapper.MicroserviceMapper;
@@ -73,6 +75,10 @@ public class ActorSystemManager {
 
     private final ObjectMapper objectMapper;
 
+    private final LdmStateService ldmStateService;
+
+    private final DashboardWebSocket dashboardWebSocket;
+
     private final DatasourceConfig datasourceConfig;
 
     @Getter
@@ -132,7 +138,7 @@ public class ActorSystemManager {
             SourceProvider<Offset, EventEnvelope<ClusterStateActor.Event>> sourceProvider = createSourceProvider(actorSystem, R2dbcReadJournal.Identifier(), "", PERSISTENCE_ID);
             Projection<EventEnvelope<ClusterStateActor.Event>> projection =
                     R2dbcProjection.exactlyOnce(
-                            projectionId, settings, sourceProvider, () -> new ClusterStateProjectionR2dbcHandler(ldmConfig, objectMapper), actorSystem);
+                            projectionId, settings, sourceProvider, () -> new ClusterStateProjectionR2dbcHandler(ldmConfig, objectMapper, ldmStateService, dashboardWebSocket), actorSystem);
 
             ActorRef<ProjectionBehavior.Command> clusterStateProjector = context.spawn(ProjectionBehavior.create(projection), projection.projectionId().id());
 

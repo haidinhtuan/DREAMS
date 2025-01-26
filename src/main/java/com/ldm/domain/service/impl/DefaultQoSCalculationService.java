@@ -58,8 +58,11 @@ public class DefaultQoSCalculationService implements QoSCalculationService  {
         }
 
         log.debug("Highest affinity cluster: {} with score: {}", highestAffinityCluster.getId(), highestAffinityScore);
-        assert localCluster != null;
-        log.debug("Local cluster: {} with score: {}", localCluster.getId(), localAffinityScore);
+        if(localCluster==null) {
+            log.debug("The microservice {} does not have any affinity to its own cluster, which should be considered as a potential migration candidate!", microservice.getId());
+        } else {
+            log.debug("Local cluster: {} with score: {}", localCluster.getId(), localAffinityScore);
+        }
 
         // If the highest affinity score is not greater than the local affinity, no improvement
         if (highestAffinityScore <= localAffinityScore) {
