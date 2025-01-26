@@ -9,6 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^6.4.1",
+    "@mui/material-nextjs": "^6.3.1",
     "@types/react-cytoscapejs": "^1.2.5",
     "cytoscape": "^3.31.0",
     "cytoscape-fcose": "^2.2.0",

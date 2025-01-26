@@ -1,8 +1,11 @@
 package com.ldm.infrastructure.adapter.in.websocket;
 
 import com.ldm.application.service.LdmStateService;
+import com.ldm.shared.constants.MessageType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnError;
 import jakarta.websocket.OnOpen;
@@ -32,10 +35,14 @@ public class DashboardWebSocket {
 
         managedExecutor.execute(() -> {
             try {
-                String graphData = ldmStateService.getGraphData().build().toString();
+                JsonObject jsonObject = ldmStateService.getGraphData().build();
                 log.debug("----------->>>>>>> Sending graph data to client...");
-                log.debug(graphData);
-                session.getBasicRemote().sendText(graphData);
+                JsonObject jsonResponse = Json.createObjectBuilder()
+                        .add("type", MessageType.GRAPH_DATA.toString())
+                        .add("value", jsonObject)
+                        .build();
+                log.debug(jsonResponse.toString());
+                session.getBasicRemote().sendText(jsonResponse.toString());
             } catch (Exception e) {
                 log.error("Sending graph data to the new websocket client failed!", e);
             }
@@ -56,20 +63,27 @@ public class DashboardWebSocket {
     public void broadcastLdmState(){
         managedExecutor.execute(() -> {
             try {
-                String graphData = ldmStateService.getGraphData().build().toString();
+                JsonObject jsonObject = ldmStateService.getGraphData().build();
                 log.debug("----------->>>>>>> BROADCASTING graph data to the clients...");
-                log.debug(graphData);
-                broadcast(graphData);
+                broadcast(MessageType.GRAPH_DATA, jsonObject);
             } catch (Exception e) {
                 log.error("Broadcasting graph data to all websocket clients failed!", e);
             }
         });
     }
 
-    public void broadcast(String message) {
-        log.debug("----------->>>>>>> BROADCASTING graph data to the clients...");
+    public void broadcast(MessageType messageType, JsonObject message) {
+        log.debug("----------->>>>>>> BROADCASTING data to the clients...");
+
+        JsonObject jsonResponse = Json.createObjectBuilder()
+                .add("type", messageType.toString())
+                .add("value", message)
+                .build();
+
+        log.debug(jsonResponse.toString());
+
         sessions.values().forEach(s -> {
-            s.getAsyncRemote().sendObject(message, result ->  {
+            s.getAsyncRemote().sendObject(jsonResponse.toString(), result ->  {
                 if (result.getException() != null) {
                     log.error("Unable to send message: " + result.getException());
                 }

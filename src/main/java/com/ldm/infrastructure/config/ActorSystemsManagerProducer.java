@@ -76,7 +76,7 @@ public class ActorSystemsManagerProducer {
                 migrationService,
                 raftLeaderChangeHandler,
                 migrationMapper,
-                microservicesCache);
+                microservicesCache, dashboardWebSocket);
 
         actorSystemManager.setMigrationMachine(ldmStateMachine);
 

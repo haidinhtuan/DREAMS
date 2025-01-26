@@ -13,8 +13,10 @@ import com.ldm.infrastructure.adapter.in.pekko.ClusterStateActor;
 import com.ldm.infrastructure.adapter.in.websocket.DashboardWebSocket;
 import com.ldm.infrastructure.config.LdmConfig;
 import com.ldm.infrastructure.persistence.entity.LdmState;
+import com.ldm.shared.constants.MessageType;
 import io.r2dbc.spi.Result;
 import io.r2dbc.spi.Row;
+import jakarta.json.Json;
 import jakarta.json.JsonObjectBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -107,7 +109,7 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
                 .collectList()
                 .doOnNext(updatedMicroservices -> log.debug("Updated microservice rows: {}", updatedMicroservices.size()));
 
-        Mono<Done> broadcastMono = Mono.defer(() -> fetchAndBroadcastLdmStateReactive(session));
+        Mono<Done> broadcastMono = Mono.defer(() -> fetchAndBroadcastLdmStateReactive(session, migrationAction));
 
         return updateStateMono
                 .then(updateAffinitiesMono)
@@ -234,7 +236,7 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
         return updateMicroserviceAffinityList;
     }
 
-    private Mono<Done> fetchAndBroadcastLdmStateReactive(R2dbcSession session) {
+    private Mono<Done> fetchAndBroadcastLdmStateReactive(R2dbcSession session, MigrationAction migrationAction) {
         String query = """
                 SELECT ldm_id, microservice_id, k8s_cluster_id, k8s_cluster_location, improvement_score, microservice_affinities, last_update, created_at
                 FROM ldm_state
@@ -245,8 +247,12 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
                 .collectList()
                 .flatMap(ldmStateList -> {
                     // Convert the list to JSON for broadcasting
-                    JsonObjectBuilder jsonObjectBuilder = this.ldmStateService.getJsonObjectBuilder(ldmStateList);
-                    dashboardWebSocket.broadcast(jsonObjectBuilder.build().toString());
+                    JsonObjectBuilder graphJsonObjectBuilder = this.ldmStateService.getJsonObjectBuilder(ldmStateList);
+                    JsonObjectBuilder migrationsAppliedJsonObjectBuilder = Json.createObjectBuilder();
+                    migrationsAppliedJsonObjectBuilder.add("lastMigratedMicroservice", migrationAction.microservice().getId()+" -> " + migrationAction.targetK8sCluster().getLocation());
+
+                    dashboardWebSocket.broadcast(MessageType.MIGRATION_APPLIED, migrationsAppliedJsonObjectBuilder.build());
+                    dashboardWebSocket.broadcast(MessageType.GRAPH_DATA, graphJsonObjectBuilder.build());
                     return Mono.just(Done.done());
                 });
     }
