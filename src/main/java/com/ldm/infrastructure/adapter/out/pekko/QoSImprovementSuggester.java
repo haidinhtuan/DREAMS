@@ -49,7 +49,7 @@ public class QoSImprovementSuggester {
     public interface QoSImproveSuggestionProtocol {
     }
 
-    public record RunQoSImprovement(String processId) implements QoSImproveSuggestionProtocol {
+    public record RunQoSImprovement() implements QoSImproveSuggestionProtocol {
     }
 
     public record Shutdown(ActorRef<StatusReply<Void>> replyTo) implements QoSImproveSuggestionProtocol, Serializable {
@@ -82,7 +82,7 @@ public class QoSImprovementSuggester {
             Duration TIMEOUT_DURATION = Duration.ofSeconds(timeoutSeconds);
 
             // Schedule regular QoS improvement tasks
-            timersSetup.startTimerAtFixedRate(new RunQoSImprovement(UUID.randomUUID().toString()), Duration.ofSeconds(interval));
+            timersSetup.startTimerAtFixedRate(new RunQoSImprovement(), Duration.ofSeconds(interval));
 
             // Create a message adapter for Receptionist.Listing to handle listing responses
             ActorRef<Receptionist.Listing> listingResponseAdapter =
@@ -102,7 +102,8 @@ public class QoSImprovementSuggester {
                         domainManager.printMicroservicesState();
 
                         long startTime = System.nanoTime();
-                        measurementService.recordStart(message.processId, PerformanceMeasurementConstants.PROCESS_E2E_QOS_OPTIMIZATION, startTime, ldmId);
+                        String processId = UUID.randomUUID().toString();
+                        measurementService.recordStart(processId, PerformanceMeasurementConstants.PROCESS_E2E_QOS_OPTIMIZATION, startTime, ldmId);
 
                         discoverAndShutdownSuggesters(context, TIMEOUT_DURATION, listingResponseAdapter)
                                 .thenRun(() -> handleQoSImprovement(
@@ -115,7 +116,7 @@ public class QoSImprovementSuggester {
                                         migrationMachine.getLDMStateMachine(),
                                         listingResponseAdapter,
                                         TIMEOUT_DURATION,
-                                        message.processId,
+                                        processId,
                                         measurementService,
                                         dashboardWebSocket
                                 ))

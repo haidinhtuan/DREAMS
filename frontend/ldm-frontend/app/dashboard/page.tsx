@@ -44,59 +44,79 @@ const Dashboard: React.FC = () => {
   const [measurementData, setMeasurementData] = useState<MeasurementData[]>([]);
   const [measurementKeys, setMeasurementKeys] = useState<string[]>([]);
 
-  useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8080/dashboard");
+  const handleWebSocketMessage = (event: MessageEvent) => {
+    const data = JSON.parse(event.data);
 
-    socket.onopen = () => console.log("WebSocket connection established");
+    if (data.type) {
+      switch (data.type) {
+        case "MIGRATION_APPLIED":
+          setKeyFigures((prev) => ({
+            ...prev,
+            appliedMigrations: data.value.migrationsAppliedCount,
+            lastMigratedMicroservice: data.value.lastMigratedMicroservice,
+          }));
+          break;
+        case "LEADER_CHANGED":
+          setKeyFigures((prev) => ({
+            ...prev,
+            leaderChanges: data.value.LEADER_CHANGE_COUNT,
+            currentLeader: data.value.NEW_LEADER,
+          }));
+          break;
+        case "GRAPH_DATA":
+          console.log("Graph Data Received:", data.value);
+          setGraphData((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  nodes: [...prev.nodes, ...data.value.nodes],
+                  edges: [...prev.edges, ...data.value.edges],
+                }
+              : data.value
+          );
+          break;
+        case "MEASUREMENT_DATA":
+          console.log("Measurement Data Received:", data.value);
+          const enrichedData = {
+            ...data.value,
+            timestamp: new Date().toLocaleString(),
+          };
+          setKeyFigures((prev) => ({
+            ...prev,
+            measurementDuration: `${data.value.durationInMs} ms`,
+            createdBy: data.value.createdBy,
+          }));
 
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-
-      if (data.type) {
-        switch (data.type) {
-          case "MIGRATION_APPLIED":
-            setKeyFigures((prev) => ({
-              ...prev,
-              appliedMigrations: data.value.migrationsAppliedCount,
-              lastMigratedMicroservice: data.value.lastMigratedMicroservice,
-            }));
-            break;
-          case "LEADER_CHANGED":
-            setKeyFigures((prev) => ({
-              ...prev,
-              leaderChanges: data.value.LEADER_CHANGE_COUNT,
-              currentLeader: data.value.NEW_LEADER,
-            }));
-            break;
-          case "GRAPH_DATA":
-            console.log("Graph Data Received:", data.value);
-            setGraphData(data.value);
-            break;
-          case "MEASUREMENT_DATA":
-            console.log("Measurement Data Received:", data.value);
-            const enrichedData = {
-              ...data.value,
-              timestamp: new Date().toLocaleString(),
-            };
-            setKeyFigures((prev) => ({
-              ...prev,
-              measurementDuration: `${data.value.durationInMs} ms`,
-              createdBy: data.value.createdBy,
-            }));
-            setMeasurementData((prev) => [...prev, enrichedData]);
-            setMeasurementKeys((prevKeys) => {
-              const newKeys = Object.keys(enrichedData);
-              return Array.from(new Set([...prevKeys, ...newKeys]));
-            });
-            break;
-          default:
-            console.warn("Unhandled WebSocket message:", data);
-        }
+          setMeasurementData((prev) => [...prev, enrichedData]);
+          setMeasurementKeys((prevKeys) => {
+            const newKeys = Object.keys(enrichedData);
+            return Array.from(new Set([...prevKeys, ...newKeys]));
+          });
+          break;
+        default:
+          console.warn("Unhandled WebSocket message:", data);
       }
-    };
+    }
+  };
 
-    socket.onclose = () => console.log("WebSocket connection closed");
-    return () => socket.close();
+  useEffect(() => {
+    const sockets = [
+      new WebSocket("ws://localhost:8080/dashboard"),
+      new WebSocket("ws://localhost:8081/dashboard"),
+      new WebSocket("ws://localhost:8082/dashboard"),
+    ];
+
+    sockets.forEach((socket) => {
+      socket.onopen = () =>
+        console.log(`WebSocket connection established: ${socket.url}`);
+      socket.onmessage = handleWebSocketMessage;
+      socket.onclose = () =>
+        console.log(`WebSocket connection closed: ${socket.url}`);
+    });
+
+    return () => {
+      sockets.forEach((socket) => socket.close());
+    };
   }, []);
 
   return (
