@@ -1,7 +1,8 @@
 package com.ldm.shared.constants;
 
-public enum MessageType {
+public enum MessageTypeEnum {
     LEADER_CHANGED,
     MIGRATION_APPLIED,
+    QOS_TIME_DURATION,
     GRAPH_DATA
 }

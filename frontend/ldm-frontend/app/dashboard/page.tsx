@@ -15,7 +15,7 @@ type KeyFigures = {
 type MessageTypes =
   | "MIGRATION_APPLIED"
   | "LAST_MIGRATED_MICROSERVICE"
-  | "MIGRATION_DURATION"
+  | "QOS_TIME_DURATION"
   | "LEADER_CHANGED"
   | "GRAPH_DATA";
 
@@ -23,7 +23,7 @@ const Dashboard: React.FC = () => {
   const [keyFigures, setKeyFigures] = useState<KeyFigures>({
     appliedMigrations: 0,
     lastMigratedMicroservice: "N/A",
-    migrationDuration: "0s",
+    qosTimeDuration: "0s",
     leaderChanges: 0,
   });
 
@@ -38,6 +38,7 @@ const Dashboard: React.FC = () => {
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
+      console.log("Received data on websocket: ", data);
 
       if (data.type) {
         const messageType: MessageTypes = data.type;
@@ -47,7 +48,7 @@ const Dashboard: React.FC = () => {
             setKeyFigures((prev) => ({
               ...prev,
               lastMigratedMicroservice: data.value.lastMigratedMicroservice,
-              appliedMigrations: prev.appliedMigrations + 1,
+              appliedMigrations: data.value.migrationsAppliedCount,
             }));
             break;
           case "LAST_MIGRATED_MICROSERVICE":
@@ -56,16 +57,16 @@ const Dashboard: React.FC = () => {
               lastMigratedMicroservice: data.value,
             }));
             break;
-          case "MIGRATION_DURATION":
+          case "QOS_TIME_DURATION":
             setKeyFigures((prev) => ({
               ...prev,
-              migrationDuration: data.value,
+              qosTimeDuration: data.value,
             }));
             break;
           case "LEADER_CHANGED":
             setKeyFigures((prev) => ({
               ...prev,
-              leaderChanges: prev.leaderChanges + 1,
+              leaderChanges: data.value.LEADER_CHANGE_COUNT,
             }));
             break;
           case "GRAPH_DATA":
@@ -94,7 +95,7 @@ const Dashboard: React.FC = () => {
     return (
       <Box sx={{ padding: 4 }}>
         <Typography variant="h4" gutterBottom>
-          Local Domain Managers Dashboard
+          Dashboard: Local Domain Managers
         </Typography>
         <Typography>Loading...</Typography>
       </Box>

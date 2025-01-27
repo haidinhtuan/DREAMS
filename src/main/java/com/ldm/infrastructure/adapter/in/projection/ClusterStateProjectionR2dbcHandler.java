@@ -13,7 +13,7 @@ import com.ldm.infrastructure.adapter.in.pekko.ClusterStateActor;
 import com.ldm.infrastructure.adapter.in.websocket.DashboardWebSocket;
 import com.ldm.infrastructure.config.LdmConfig;
 import com.ldm.infrastructure.persistence.entity.LdmState;
-import com.ldm.shared.constants.MessageType;
+import com.ldm.shared.constants.MessageTypeEnum;
 import io.r2dbc.spi.Result;
 import io.r2dbc.spi.Row;
 import jakarta.json.Json;
@@ -46,6 +46,9 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
     private final LdmStateService ldmStateService;
 
     private final DashboardWebSocket dashboardWebSocket;
+
+    public static Long migrationsAppliedCount = 0L;
+    public static String lastMigratedMicroservice = "None";
 
     @Override
     public CompletionStage<Done> process(R2dbcSession session, EventEnvelope<ClusterStateActor.Event> envelope) {
@@ -99,6 +102,8 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
 
     private Mono<Done> handleMigration(R2dbcSession session, ClusterStateActor.MigrationPerformed event) {
         log.debug("Migrated Microservice Projection: {}", event);
+        ++migrationsAppliedCount;
+
         MigrationAction migrationAction = event.migrationAction();
 
         Mono<Integer> updateStateMono = Mono.from(updateLDMState(session, migrationAction))
@@ -250,9 +255,12 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
                     JsonObjectBuilder graphJsonObjectBuilder = this.ldmStateService.getJsonObjectBuilder(ldmStateList);
                     JsonObjectBuilder migrationsAppliedJsonObjectBuilder = Json.createObjectBuilder();
                     migrationsAppliedJsonObjectBuilder.add("lastMigratedMicroservice", migrationAction.microservice().getId()+" -> " + migrationAction.targetK8sCluster().getLocation());
+                    migrationsAppliedJsonObjectBuilder.add("migrationsAppliedCount", migrationsAppliedCount);
 
-                    dashboardWebSocket.broadcast(MessageType.MIGRATION_APPLIED, migrationsAppliedJsonObjectBuilder.build());
-                    dashboardWebSocket.broadcast(MessageType.GRAPH_DATA, graphJsonObjectBuilder.build());
+                    lastMigratedMicroservice = migrationAction.microservice().getId()+" -> " + migrationAction.targetK8sCluster().getLocation();
+
+                    dashboardWebSocket.broadcast(MessageTypeEnum.MIGRATION_APPLIED, migrationsAppliedJsonObjectBuilder.build());
+                    dashboardWebSocket.broadcast(MessageTypeEnum.GRAPH_DATA, graphJsonObjectBuilder.build());
                     return Mono.just(Done.done());
                 });
     }

@@ -31,6 +31,7 @@ import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
 
 import java.io.Serializable;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -92,6 +93,9 @@ public class QoSImprovementSuggester {
                         context.getLog().info("**************************************************************************************");
                         context.getLog().info("PRINTING OUT CURRENT MICROSERVICES STATE BEFORE QoS Improvement:");
                         domainManager.printMicroservicesState();
+
+                        // TODO: Measure Start Time
+                        LocalDateTime startDateTime = LocalDateTime.now();
 
                         discoverAndShutdownSuggesters(context, TIMEOUT_DURATION, listingResponseAdapter)
                                 .thenRun(() -> handleQoSImprovement(
