@@ -10,6 +10,7 @@ type KeyFigures = {
   lastMigratedMicroservice: string;
   migrationDuration: string;
   leaderChanges: number;
+  currentLeader: string; // Added property for current leader
 };
 
 type MessageTypes =
@@ -23,8 +24,9 @@ const Dashboard: React.FC = () => {
   const [keyFigures, setKeyFigures] = useState<KeyFigures>({
     appliedMigrations: 0,
     lastMigratedMicroservice: "N/A",
-    qosTimeDuration: "0s",
+    migrationDuration: "0s",
     leaderChanges: 0,
+    currentLeader: "N/A", // Initial value
   });
 
   const [graphData, setGraphData] = useState<any>(null); // Update with the appropriate type for your graph data
@@ -60,13 +62,14 @@ const Dashboard: React.FC = () => {
           case "QOS_TIME_DURATION":
             setKeyFigures((prev) => ({
               ...prev,
-              qosTimeDuration: data.value,
+              migrationDuration: data.value,
             }));
             break;
           case "LEADER_CHANGED":
             setKeyFigures((prev) => ({
               ...prev,
               leaderChanges: data.value.LEADER_CHANGE_COUNT,
+              currentLeader: data.value.NEW_LEADER, // Update current leader
             }));
             break;
           case "GRAPH_DATA":
@@ -150,6 +153,17 @@ const Dashboard: React.FC = () => {
               <Typography variant="h6">Number of Leader Changes</Typography>
               <Typography variant="h4" color="primary">
                 {keyFigures.leaderChanges}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6">Current Leader</Typography>
+              <Typography variant="h4" color="primary">
+                {keyFigures.currentLeader}
               </Typography>
             </CardContent>
           </Card>
