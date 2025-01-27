@@ -58,6 +58,9 @@ public class ActorSystemsManagerProducer {
     @Inject
     DashboardWebSocket dashboardWebSocket;
 
+    @Inject
+    MeasurementService measurementService;
+
     @Getter
     @Setter
     private MigrationMachine<LDMStateMachine> migrationMachine;
@@ -66,7 +69,7 @@ public class ActorSystemsManagerProducer {
     @Produces
     @Singleton
     public ActorSystemManager createActorSystemsManager() {
-        ActorSystemManager actorSystemManager = new ActorSystemManager(ldmConfig, clusterLatencyCache, raftClient, domainManager, migrationMapper, microserviceMapper, objectMapper, ldmStateService, dashboardWebSocket, datasourceConfig);
+        ActorSystemManager actorSystemManager = new ActorSystemManager(ldmConfig, clusterLatencyCache, raftClient, domainManager, migrationMapper, microserviceMapper, objectMapper, ldmStateService, dashboardWebSocket, measurementService, datasourceConfig);
         RaftLeaderChangeHandler raftLeaderChangeHandler = new RaftLeaderChangeHandler(raftClient, domainManager, actorSystemManager);
         raftLeaderChangeHandler.setLeaderElectionModeEnum(leaderElectionMode);
         raftLeaderChangeHandler.setDefaultLeader(defaultLeader);

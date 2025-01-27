@@ -1,6 +1,10 @@
 package com.ldm.infrastructure.adapter.in.websocket;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ldm.application.service.LdmStateService;
+import com.ldm.domain.measurement.MeasurementData;
+import com.ldm.domain.measurement.MeasurementDataDTO;
 import com.ldm.infrastructure.adapter.in.projection.ClusterStateProjectionR2dbcHandler;
 import com.ldm.infrastructure.adapter.in.ratis.LDMStateMachine;
 import com.ldm.shared.constants.KeyFigureEnum;
@@ -32,6 +36,9 @@ public class DashboardWebSocket {
 
     @Inject
     ManagedExecutor managedExecutor;
+
+    @Inject
+    ObjectMapper objectMapper;
 
     @OnOpen
     public void onOpen(Session session) {
@@ -85,7 +92,7 @@ public class DashboardWebSocket {
         log.error("Error occurred on websocket: ", throwable);
     }
 
-    public void broadcastLdmState(){
+    public void broadcastLdmState() {
         managedExecutor.execute(() -> {
             try {
                 JsonObject jsonObject = ldmStateService.getGraphData().build();
@@ -108,11 +115,30 @@ public class DashboardWebSocket {
         log.debug(jsonResponse.toString());
 
         sessions.values().forEach(s -> {
-            s.getAsyncRemote().sendObject(jsonResponse.toString(), result ->  {
+            s.getAsyncRemote().sendObject(jsonResponse.toString(), result -> {
                 if (result.getException() != null) {
                     log.error("Unable to send message: " + result.getException());
                 }
             });
         });
+    }
+
+    public void publishMeasurementData(MeasurementData data) {
+        log.debug("----------->>>>>>> BROADCASTING measurement data to the clients...");
+        try {
+            MeasurementDataDTO dto = new MeasurementDataDTO(data);
+
+            String measurementJson = objectMapper.writeValueAsString(dto);
+            log.debug(measurementJson);
+            sessions.values().forEach(s -> {
+                s.getAsyncRemote().sendObject(measurementJson, result -> {
+                    if (result.getException() != null) {
+                        log.error("Unable to send measurement data: " + result.getException());
+                    }
+                });
+            });
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -3,14 +3,18 @@ package com.ldm.infrastructure.adapter.out.pekko;
 import com.ldm.application.port.LeaderChangeHandler;
 import com.ldm.application.port.MigrationMachine;
 import com.ldm.application.service.DomainManager;
+import com.ldm.application.service.MeasurementService;
+import com.ldm.domain.measurement.MeasurementData;
 import com.ldm.domain.model.Microservice;
 import com.ldm.domain.model.MigrationAction;
 import com.ldm.domain.model.MigrationCandidate;
 import com.ldm.infrastructure.adapter.in.pekko.MigrationProposalVoter;
 import com.ldm.infrastructure.adapter.in.ratis.LDMStateMachine;
+import com.ldm.infrastructure.adapter.in.websocket.DashboardWebSocket;
 import com.ldm.infrastructure.mapper.MigrationMapper;
 import com.ldm.infrastructure.serialization.protobuf.EvaluateMigrationProposalOuterClass;
 import com.ldm.infrastructure.serialization.protobuf.MigrationActionOuterClass;
+import com.ldm.shared.constants.PerformanceMeasurementConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.ActorRefResolver;
@@ -31,10 +35,10 @@ import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
 
 import java.io.Serializable;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
@@ -45,7 +49,7 @@ public class QoSImprovementSuggester {
     public interface QoSImproveSuggestionProtocol {
     }
 
-    public static class RunQoSImprovement implements QoSImproveSuggestionProtocol {
+    public record RunQoSImprovement(String processId) implements QoSImproveSuggestionProtocol {
     }
 
     public record Shutdown(ActorRef<StatusReply<Void>> replyTo) implements QoSImproveSuggestionProtocol, Serializable {
@@ -69,13 +73,16 @@ public class QoSImprovementSuggester {
             int timeoutSeconds,
             ActorRef<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal> localVoterRef,
             MigrationMapper migrationMapper,
-            MigrationMachine<LDMStateMachine> migrationMachine
+            MigrationMachine<LDMStateMachine> migrationMachine,
+            String ldmId,
+            MeasurementService measurementService,
+            DashboardWebSocket dashboardWebSocket
     ) {
         return Behaviors.setup(context -> Behaviors.withTimers(timersSetup -> {
             Duration TIMEOUT_DURATION = Duration.ofSeconds(timeoutSeconds);
 
             // Schedule regular QoS improvement tasks
-            timersSetup.startTimerAtFixedRate(new RunQoSImprovement(), Duration.ofSeconds(interval));
+            timersSetup.startTimerAtFixedRate(new RunQoSImprovement(UUID.randomUUID().toString()), Duration.ofSeconds(interval));
 
             // Create a message adapter for Receptionist.Listing to handle listing responses
             ActorRef<Receptionist.Listing> listingResponseAdapter =
@@ -94,8 +101,8 @@ public class QoSImprovementSuggester {
                         context.getLog().info("PRINTING OUT CURRENT MICROSERVICES STATE BEFORE QoS Improvement:");
                         domainManager.printMicroservicesState();
 
-                        // TODO: Measure Start Time
-                        LocalDateTime startDateTime = LocalDateTime.now();
+                        long startTime = System.nanoTime();
+                        measurementService.recordStart(message.processId, PerformanceMeasurementConstants.PROCESS_E2E_QOS_OPTIMIZATION, startTime, ldmId);
 
                         discoverAndShutdownSuggesters(context, TIMEOUT_DURATION, listingResponseAdapter)
                                 .thenRun(() -> handleQoSImprovement(
@@ -107,7 +114,10 @@ public class QoSImprovementSuggester {
                                         migrationMachine.getLDMStateMachine().getLeaderChangeHandler(),
                                         migrationMachine.getLDMStateMachine(),
                                         listingResponseAdapter,
-                                        TIMEOUT_DURATION
+                                        TIMEOUT_DURATION,
+                                        message.processId,
+                                        measurementService,
+                                        dashboardWebSocket
                                 ))
                                 .exceptionally(ex -> {
                                     context.getLog().error("Error during QoS improvement task: {}", ex.getMessage(), ex);
@@ -172,7 +182,10 @@ public class QoSImprovementSuggester {
             LeaderChangeHandler<RaftGroupMemberId, RaftPeerId, RaftServer, RaftGroupId> leaderChangeHandler,
             LDMStateMachine ldmStateMachine,
             ActorRef<Receptionist.Listing> listingResponseAdapter,
-            Duration timeout
+            Duration timeout,
+            String processId,
+            MeasurementService measurementService,
+            DashboardWebSocket dashboardWebSocket
     ) {
         Optional<MigrationCandidate> migrationCandidateOpt = Optional.ofNullable(domainManager.findMigrationCandidate());
 
@@ -186,9 +199,12 @@ public class QoSImprovementSuggester {
                         listingResponseAdapter,
                         timeout,
                         ldmStateMachine,
-                        leaderChangeHandler
+                        leaderChangeHandler,
+                        processId,
+                        measurementService,
+                        dashboardWebSocket
                 ),
-                () -> triggerLeaderChange(ldmStateMachine, leaderChangeHandler)
+                () -> triggerLeaderChange(ldmStateMachine, leaderChangeHandler, processId, measurementService, PerformanceMeasurementConstants.RESULT_NO_PROPOSAL, dashboardWebSocket)
         );
     }
 
@@ -201,7 +217,10 @@ public class QoSImprovementSuggester {
             ActorRef<Receptionist.Listing> listingResponseAdapter,
             Duration timeout,
             LDMStateMachine ldmStateMachine,
-            LeaderChangeHandler leaderChangeHandler
+            LeaderChangeHandler leaderChangeHandler,
+            String processId,
+            MeasurementService measurementService,
+            DashboardWebSocket dashboardWebSocket
     ) {
         discoverInstances(context, timeout, MigrationProposalVoter.MIGRATION_PROPOSAL_VOTER_KEY, listingResponseAdapter)
                 .thenCompose(listing -> {
@@ -215,9 +234,9 @@ public class QoSImprovementSuggester {
                     return CompletableFuture.allOf(votes.stream().map(CompletionStage::toCompletableFuture).toArray(CompletableFuture[]::new))
                             .thenAccept(v -> {
                                 if (shouldMigrate(votes, remoteVoters.size())) {
-                                    sendMigrationAction(migrationCandidate, migrationMapper, raftClient);
+                                    sendMigrationAction(migrationCandidate, migrationMapper, raftClient, processId, measurementService, dashboardWebSocket);
                                 } else {
-                                    triggerLeaderChange(ldmStateMachine, leaderChangeHandler);
+                                    triggerLeaderChange(ldmStateMachine, leaderChangeHandler, processId, measurementService, PerformanceMeasurementConstants.RESULT_REJECTED, dashboardWebSocket);
                                 }
                             });
                 })
@@ -229,8 +248,20 @@ public class QoSImprovementSuggester {
 
     private static void triggerLeaderChange(
             LDMStateMachine LDMStateMachine,
-            LeaderChangeHandler<RaftGroupMemberId, RaftPeerId, RaftServer, RaftGroupId> leaderChangeHandler
+            LeaderChangeHandler<RaftGroupMemberId, RaftPeerId, RaftServer, RaftGroupId> leaderChangeHandler,
+            String processId,
+            MeasurementService measurementService,
+            String triggerReason,
+            DashboardWebSocket dashboardWebSocket
     ) {
+        log.debug("Triggering leader change for process: " + processId);
+        long endTime = System.nanoTime();
+        log.debug("End time of measurement for processId<" + processId + ">: " + endTime);
+        log.debug(String.valueOf(System.nanoTime()));
+        measurementService.recordEnd(processId, endTime, triggerReason);
+        MeasurementData measurementData = measurementService.getMeasurements().get(processId);
+        dashboardWebSocket.publishMeasurementData(measurementData);
+        measurementService.getMeasurements().remove(processId);
         LDMStateMachine.getServer()
                 .thenAccept(raftServer -> {
                     leaderChangeHandler.triggerLeaderChange(
@@ -250,7 +281,11 @@ public class QoSImprovementSuggester {
     private static void sendMigrationAction(
             MigrationCandidate migrationCandidate,
             MigrationMapper migrationMapper,
-            RaftClient raftClient
+            RaftClient raftClient,
+            String processId,
+            MeasurementService measurementService,
+            DashboardWebSocket dashboardWebSocket
+
     ) {
         MigrationAction migrationAction = migrationCandidate.toMigrationAction();
         MigrationActionOuterClass.MigrationAction migrationActionProto = migrationMapper.toProto(migrationAction);
@@ -259,7 +294,13 @@ public class QoSImprovementSuggester {
         log.debug("Sending this migrationActionProto: {}", migrationActionProto);
 
         raftClient.async().send(migrationActionMessage)
-                .thenAccept(reply -> log.info("Migration action applied successfully for microservice {} suggested at {} by LDM {}!", migrationAction.microservice().getId(), migrationAction.suggestedAt(), migrationAction.suggesterId()))
+                .thenAccept(reply -> {
+                    measurementService.recordEnd(processId, System.nanoTime(), PerformanceMeasurementConstants.RESULT_APPROVED);
+                    MeasurementData measurementData = measurementService.getMeasurements().get(processId);
+                    dashboardWebSocket.publishMeasurementData(measurementData);
+                    measurementService.getMeasurements().remove(processId);
+                    log.info("Migration action applied successfully for microservice {} suggested at {} by LDM {}!", migrationAction.microservice().getId(), migrationAction.suggestedAt(), migrationAction.suggesterId());
+                })
                 .exceptionally(ex -> {
                     log.error("Error while sending migration action: ", ex);
                     return null;
