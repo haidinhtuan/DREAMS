@@ -11,7 +11,8 @@ import com.ldm.infrastructure.adapter.in.websocket.DashboardWebSocket;
 import com.ldm.infrastructure.config.ActorSystemManager;
 import com.ldm.infrastructure.mapper.MigrationMapper;
 import com.ldm.infrastructure.serialization.protobuf.MigrationActionOuterClass;
-import com.ldm.shared.constants.MessageType;
+import com.ldm.shared.constants.KeyFigureEnum;
+import com.ldm.shared.constants.MessageTypeEnum;
 import io.smallrye.mutiny.Uni;
 import jakarta.json.Json;
 import jakarta.json.JsonObjectBuilder;
@@ -48,6 +49,10 @@ public class LDMStateMachine extends BaseStateMachine implements MigrationMachin
     private final MicroservicesCache microservicesCache;
 
     private final DashboardWebSocket dashboardWebSocket;
+
+    public static long leaderChangeCount = 0L;
+
+    public static String currentLeader = "N/A";
 
     /**
      * Processes migration actions
@@ -124,10 +129,17 @@ public class LDMStateMachine extends BaseStateMachine implements MigrationMachin
     @Override
     public void notifyLeaderChanged(RaftGroupMemberId groupMemberId, RaftPeerId newLeaderId) {
         log.info("Leader change detected: New leader is {}", newLeaderId);
+        currentLeader = newLeaderId.toString();
+//        Long currentleaderChangeCount = this.keyFiguresCache.getValueByKeyFigure(KeyFigureEnum.LEADER_CHANGE_COUNT.toString());
+//        this.keyFiguresCache.cacheKeyFigure(KeyFigureEnum.LEADER_CHANGE_COUNT.toString(), currentleaderChangeCount+1);
         JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
-        jsonObjectBuilder.add("New Leader", newLeaderId.toString());
+        jsonObjectBuilder.add("NEW_LEADER", newLeaderId.toString());
+//        Long leaderChangeCount = this.keyFiguresCache.getValueByKeyFigure(KeyFigureEnum.LEADER_CHANGE_COUNT.toString());
 
-        this.dashboardWebSocket.broadcast(MessageType.LEADER_CHANGED, jsonObjectBuilder.build());
+        jsonObjectBuilder.add(KeyFigureEnum.LEADER_CHANGE_COUNT.toString(), ++leaderChangeCount);
+        log.debug(KeyFigureEnum.LEADER_CHANGE_COUNT + ": " + leaderChangeCount);
+
+        this.dashboardWebSocket.broadcast(MessageTypeEnum.LEADER_CHANGED, jsonObjectBuilder.build());
         try {
             // Delegate the handling of the leader change to RaftLeaderChangedHandler
             leaderChangeHandler.handleLeaderChangedEvent(groupMemberId, newLeaderId);

@@ -2,7 +2,7 @@ version: '3.8'
 services:
   ldm1:
   #    build: .
-    image: tienhngnguyen/local-domain-manager:2.0.0-SNAPSHOT
+    image: tienhngnguyen/local-domain-manager:2.1.0-SNAPSHOT
     ports:
       - '6000:6000' # Pekko
       - '8080:8080' # Quarkus
@@ -43,7 +43,7 @@ services:
       - PEKKO_PORT=6000
       - LEADER_ELECTION_MODE=DEFAULT
       - DEFAULT_LEADER=54f34e52-b466-49f8-b525-230cd107148b
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=DEBUG
       - RATIS_LOG_LEVEL=WARN
       - DB_HOST=postgresql
       - DB_USER=postgres
@@ -57,7 +57,7 @@ services:
 
   ldm2:
     #    build: .
-    image: tienhngnguyen/local-domain-manager:2.0.0-SNAPSHOT
+    image: tienhngnguyen/local-domain-manager:2.1.0-SNAPSHOT
     ports:
       - '6001:6001' # Pekko
       - '8081:8081' # Quarkus
@@ -110,12 +110,12 @@ services:
     volumes:
       - ./experiments/exp4/LDM2.json:/data/LDM2.json
       - ./experiments/exp4/ldm2/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm2
-#    depends_on:
-#      - ldm1
+    depends_on:
+      - ldm1
 
   ldm3:
     #    build: .
-    image: tienhngnguyen/local-domain-manager:2.0.0-SNAPSHOT
+    image: tienhngnguyen/local-domain-manager:2.1.0-SNAPSHOT
     ports:
       - '6002:6002' # Pekko
       - '8082:8082' # Quarkus
@@ -170,8 +170,8 @@ services:
     volumes:
       - ./experiments/exp4/LDM3.json:/data/LDM3.json
       - ./experiments/exp4/ldm3/raft-storage/:/data/raft-storage  # Separate RAFT storage for ldm3
-#    depends_on:
-#      - ldm1
+    depends_on:
+      - ldm1
   postgresql:
     container_name: postgresql
     image: bitnami/postgresql:17.2.0

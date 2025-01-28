@@ -9,7 +9,7 @@ quarkus:
       "com.ldm":
         level: ${LOG_LEVEL:DEBUG}
       "org.apache.pekko":  # Enable debug logs for Apache Pekko
-        level: ${LOG_LEVEL:INFO}
+        level: ${LOG_LEVEL:DEBUG}
       "org.apa.pek.per.r2d.que.sca.QueryDao":
         level: INFO
       "org.apa.pek.per.r2d.que.sca.R2dbcReadJournal":

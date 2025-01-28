@@ -5,6 +5,7 @@ import com.ldm.application.port.MigrationMachine;
 import com.ldm.application.service.ClusterLatencyCache;
 import com.ldm.application.service.DomainManager;
 import com.ldm.application.service.LdmStateService;
+import com.ldm.application.service.MeasurementService;
 import com.ldm.domain.model.MigrationAction;
 import com.ldm.domain.model.testdata.ClusterData;
 import com.ldm.infrastructure.adapter.in.pekko.*;
@@ -79,6 +80,8 @@ public class ActorSystemManager {
 
     private final DashboardWebSocket dashboardWebSocket;
 
+    private final MeasurementService measurementService;
+
     private final DatasourceConfig datasourceConfig;
 
     @Getter
@@ -147,7 +150,7 @@ public class ActorSystemManager {
                         if (qosImprovementSuggesterRef == null) {
                             // Spawn QoSImprovementSuggester actor
                             qosImprovementSuggesterRef = context.spawn(
-                                    QoSImprovementSuggester.create(msg.raftClient, msg.domainManager, ldmConfig.proposal().interval(), ldmConfig.proposal().requestTimeout(), migrationProposalVoter, migrationMapper, migrationMachine),
+                                    QoSImprovementSuggester.create(msg.raftClient, msg.domainManager, ldmConfig.proposal().interval(), ldmConfig.proposal().requestTimeout(), migrationProposalVoter, migrationMapper, migrationMachine, ldmConfig.id(), measurementService, dashboardWebSocket),
                                     "QoSImprovementSuggester"
                             );
 
