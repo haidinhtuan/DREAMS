@@ -112,6 +112,9 @@ const Dashboard: React.FC = () => {
       new WebSocket("ws://localhost:8080/dashboard"),
       new WebSocket("ws://localhost:8081/dashboard"),
       new WebSocket("ws://localhost:8082/dashboard"),
+      new WebSocket("ws://localhost:8083/dashboard"),
+      new WebSocket("ws://localhost:8084/dashboard"),
+      new WebSocket("ws://localhost:8085/dashboard"),
     ];
 
     sockets.forEach((socket) => {

@@ -1,0 +1,135 @@
+{
+    "clusterId": "66472086-5a7b-461e-883e-2d4d4763e34d",
+    "location": "Singapore",
+    "latencyToLDMs": {
+        "54f34e52-b466-49f8-b525-230cd107148b": 250,
+        "36f06b8b-cd19-4c72-a9a6-2f37baf4a422": 150,
+        "c5f8a0e9-2fbc-41b4-90b8-a83f6a1c5b68": 200,
+        "45d20af3-96c5-47db-8149-f92ae47df3e3": 180,
+        "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c": 30
+    },
+    "microservices": [
+        {
+            "id": "MS8",
+            "isNonMigratable": false,
+            "affinities": {
+                "MS4": {
+                    "name": "MS4",
+                    "value": 25,
+                    "k8sCluster": {
+                        "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+                        "location": "Berlin"
+                    }
+                },
+                "MS9": {
+                    "name": "MS9",
+                    "value": 95,
+                    "k8sCluster": {
+                        "id": "66472086-5a7b-461e-883e-2d4d4763e34d",
+                        "location": "Singapore"
+                    }
+                }
+            }
+        },
+        {
+            "id": "MS9",
+            "isNonMigratable": false,
+            "affinities": {
+                "MS5": {
+                    "name": "MS5",
+                    "value": 50,
+                    "k8sCluster": {
+                        "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+                        "location": "Berlin"
+                    }
+                },
+                "MS6": {
+                    "name": "MS6",
+                    "value": 60,
+                    "k8sCluster": {
+                        "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+                        "location": "Berlin"
+                    }
+                },
+                "MS8": {
+                    "name": "MS8",
+                    "value": 95,
+                    "k8sCluster": {
+                        "id": "66472086-5a7b-461e-883e-2d4d4763e34d",
+                        "location": "Singapore"
+                    }
+                },
+                "MS10": {
+                    "name": "MS10",
+                    "value": 95,
+                    "k8sCluster": {
+                        "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422\"",
+                        "location": "Berlin"
+                    }
+                },
+                "MS17": {
+                    "name": "MS17",
+                    "value": 40,
+                    "k8sCluster": {
+                        "id": "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c",
+                        "location": "Sydney"
+                    }
+                }
+            }
+        },
+        {
+            "id": "MS3",
+            "isNonMigratable": false,
+            "affinities": {
+                "MS1": {
+                    "name": "MS1",
+                    "value": 90,
+                    "k8sCluster": {
+                        "id": "54f34e52-b466-49f8-b525-230cd107148b",
+                        "location": "New York"
+                    }
+                },
+                "MS2": {
+                    "name": "MS2",
+                    "value": 90,
+                    "k8sCluster": {
+                        "id": "54f34e52-b466-49f8-b525-230cd107148b",
+                        "location": "New York"
+                    }
+                },
+                "MS7": {
+                    "name": "MS7",
+                    "value": 60,
+                    "k8sCluster": {
+                        "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+                        "location": "Berlin"
+                    }
+                },
+                "MS10": {
+                    "name": "MS10",
+                    "value": 5,
+                    "k8sCluster": {
+                        "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+                        "location": "Berlin"
+                    }
+                },
+                "MS11": {
+                    "name": "MS11",
+                    "value": 60,
+                    "k8sCluster": {
+                        "id": "c5f8a0e9-2fbc-41b4-90b8-a83f6a1c5b68",
+                        "location": "Los Angeles"
+                    }
+                },
+                "MS16": {
+                    "name": "MS16",
+                    "value": 45,
+                    "k8sCluster": {
+                        "id": "45d20af3-96c5-47db-8149-f92ae47df3e3",
+                        "location": "London"
+                    }
+                }
+            }
+        }
+    ]
+}
