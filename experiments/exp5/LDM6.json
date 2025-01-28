@@ -1,0 +1,117 @@
+{
+  "clusterId": "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c",
+  "location": "Sydney",
+  "latencyToLDMs": {
+    "54f34e52-b466-49f8-b525-230cd107148b": 400,
+    "36f06b8b-cd19-4c72-a9a6-2f37baf4a422": 420,
+    "66472086-5a7b-461e-883e-2d4d4763e34d": 30,
+    "45d20af3-96c5-47db-8149-f92ae47df3e3": 450,
+    "c5f8a0e9-2fbc-41b4-90b8-a83f6a1c5b68": 130
+  },
+  "microservices": [
+    {
+      "id": "MS17",
+      "isNonMigratable": false,
+      "affinities": {
+        "MS18": {
+          "name": "MS18",
+          "value": 75,
+          "k8sCluster": {
+            "id": "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c",
+            "location": "Sydney"
+          }
+        },
+        "MS9": {
+          "name": "MS9",
+          "value": 40,
+          "k8sCluster": {
+            "id": "66472086-5a7b-461e-883e-2d4d4763e34d",
+            "location": "Singapore"
+          }
+        }
+      }
+    },
+    {
+      "id": "MS18",
+      "isNonMigratable": false,
+      "affinities": {
+        "MS17": {
+          "name": "MS17",
+          "value": 75,
+          "k8sCluster": {
+            "id": "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c",
+            "location": "Sydney"
+          }
+        },
+        "MS12": {
+          "name": "MS12",
+          "value": 50,
+          "k8sCluster": {
+            "id": "c5f8a0e9-2fbc-41b4-90b8-a83f6a1c5b68",
+            "location": "Los Angeles"
+          }
+        },
+        "MS19": {
+          "name": "MS19",
+          "value": 60,
+          "k8sCluster": {
+            "id": "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c",
+            "location": "Sydney"
+          }
+        }
+      }
+    },
+    {
+      "id": "MS19",
+      "isNonMigratable": false,
+      "affinities": {
+        "MS18": {
+          "name": "MS18",
+          "value": 60,
+          "k8sCluster": {
+            "id": "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c",
+            "location": "Sydney"
+          }
+        },
+        "MS14": {
+          "name": "MS14",
+          "value": 35,
+          "k8sCluster": {
+            "id": "45d20af3-96c5-47db-8149-f92ae47df3e3",
+            "location": "London"
+          }
+        },
+        "MS20": {
+          "name": "MS20",
+          "value": 90,
+          "k8sCluster": {
+            "id": "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c",
+            "location": "Sydney"
+          }
+        }
+      }
+    },
+    {
+      "id": "MS20",
+      "isNonMigratable": false,
+      "affinities": {
+        "MS19": {
+          "name": "MS19",
+          "value": 90,
+          "k8sCluster": {
+            "id": "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c",
+            "location": "Sydney"
+          }
+        },
+        "MS16": {
+          "name": "MS16",
+          "value": 80,
+          "k8sCluster": {
+            "id": "45d20af3-96c5-47db-8149-f92ae47df3e3",
+            "location": "London"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -63,6 +63,9 @@ const Graph: React.FC<GraphProps> = ({ data }) => {
     "54f34e52-b466-49f8-b525-230cd107148b": "#2196f3", // New York
     "36f06b8b-cd19-4c72-a9a6-2f37baf4a422": "#bf2614", // Berlin
     "66472086-5a7b-461e-883e-2d4d4763e34d": "#4caf50", // Singapore
+    "c5f8a0e9-2fbc-41b4-90b8-a83f6a1c5b68": "#6666FF", // Los Angeles
+    "45d20af3-96c5-47db-8149-f92ae47df3e3": "#B0B0B0", // London
+    "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c": "#FF9933", // Sydney
   };
 
   const stylesheet: cytoscape.Stylesheet[] = [

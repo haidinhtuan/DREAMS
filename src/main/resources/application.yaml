@@ -91,9 +91,18 @@ raft:
       - id: ${CLUSTER_PEER_3_ID:66472086-5a7b-461e-883e-2d4d4763e34d}
         host: ${CLUSTER_PEER_3_HOST:localhost}
         port: ${CLUSTER_PEER_3_PORT:4002}
+      - id: ${CLUSTER_PEER_4_ID:c5f8a0e9-2fbc-41b4-90b8-a83f6a1c5b68}
+        host: ${CLUSTER_PEER_4_HOST:localhost}
+        port: ${CLUSTER_PEER_4_PORT:4003}
+      - id: ${CLUSTER_PEER_5_ID:45d20af3-96c5-47db-8149-f92ae47df3e3}
+        host: ${CLUSTER_PEER_5_HOST:localhost}
+        port: ${CLUSTER_PEER_5_PORT:4004}
+      - id: ${CLUSTER_PEER_6_ID:7b9a0d5e-8d13-4f8a-89e2-51b4733df14c}
+        host: ${CLUSTER_PEER_6_HOST:localhost}
+        port: ${CLUSTER_PEER_6_PORT:4005}
 # Test Data
 testdata:
-  file: ${TEST_DATA_FILE:/Users/tienhungnguyen/private-repo/local-domain-manager/experiments/exp4/LDM1.json}
+  file: ${TEST_DATA_FILE:/Users/tienhungnguyen/private-repo/local-domain-manager/experiments/exp5/LDM1.json}
 leader:
   election:
     mode: ${LEADER_ELECTION_MODE:DEFAULT}

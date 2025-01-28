@@ -1,0 +1,95 @@
+{
+  "clusterId": "c5f8a0e9-2fbc-41b4-90b8-a83f6a1c5b68",
+  "location": "Los Angeles",
+  "latencyToLDMs": {
+    "54f34e52-b466-49f8-b525-230cd107148b": 80,
+    "36f06b8b-cd19-4c72-a9a6-2f37baf4a422": 120,
+    "66472086-5a7b-461e-883e-2d4d4763e34d": 200,
+    "45d20af3-96c5-47db-8149-f92ae47df3e3": 160,
+    "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c": 130
+  },
+  "microservices": [
+    {
+      "id": "MS11",
+      "isNonMigratable": false,
+      "affinities": {
+        "MS12": {
+          "name": "MS12",
+          "value": 70,
+          "k8sCluster": {
+            "id": "c5f8a0e9-2fbc-41b4-90b8-a83f6a1c5b68",
+            "location": "Los Angeles"
+          }
+        },
+        "MS3": {
+          "name": "MS3",
+          "value": 60,
+          "k8sCluster": {
+            "id": "66472086-5a7b-461e-883e-2d4d4763e34d",
+            "location": "Singapore"
+          }
+        },
+        "MS13": {
+          "name": "MS13",
+          "value": 50,
+          "k8sCluster": {
+            "id": "c5f8a0e9-2fbc-41b4-90b8-a83f6a1c5b68",
+            "location": "Los Angeles"
+          }
+        }
+      }
+    },
+    {
+      "id": "MS12",
+      "isNonMigratable": false,
+      "affinities": {
+        "MS11": {
+          "name": "MS11",
+          "value": 70,
+          "k8sCluster": {
+            "id": "c5f8a0e9-2fbc-41b4-90b8-a83f6a1c5b68",
+            "location": "Los Angeles"
+          }
+        },
+        "MS4": {
+          "name": "MS4",
+          "value": 40,
+          "k8sCluster": {
+            "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+            "location": "Berlin"
+          }
+        },
+        "MS18": {
+          "name": "MS18",
+          "value": 50,
+          "k8sCluster": {
+            "id": "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c",
+            "location": "Sydney"
+          }
+        }
+      }
+    },
+    {
+      "id": "MS13",
+      "isNonMigratable": false,
+      "affinities": {
+        "MS11": {
+          "name": "MS11",
+          "value": 50,
+          "k8sCluster": {
+            "id": "c5f8a0e9-2fbc-41b4-90b8-a83f6a1c5b68",
+            "location": "Los Angeles"
+          }
+        },
+        "MS6": {
+          "name": "MS6",
+          "value": 90,
+          "k8sCluster": {
+            "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+            "location": "Berlin"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "clusterId": "45d20af3-96c5-47db-8149-f92ae47df3e3",
+  "location": "London",
+  "latencyToLDMs": {
+    "54f34e52-b466-49f8-b525-230cd107148b": 70,
+    "36f06b8b-cd19-4c72-a9a6-2f37baf4a422": 50,
+    "66472086-5a7b-461e-883e-2d4d4763e34d": 180,
+    "c5f8a0e9-2fbc-41b4-90b8-a83f6a1c5b68": 160,
+    "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c": 130
+  },
+  "microservices": [
+    {
+      "id": "MS14",
+      "isNonMigratable": false,
+      "affinities": {
+        "MS15": {
+          "name": "MS15",
+          "value": 85,
+          "k8sCluster": {
+            "id": "45d20af3-96c5-47db-8149-f92ae47df3e3",
+            "location": "London"
+          }
+        },
+        "MS7": {
+          "name": "MS7",
+          "value": 30,
+          "k8sCluster": {
+            "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+            "location": "Berlin"
+          }
+        },
+        "MS19": {
+          "name": "MS19",
+          "value": 35,
+          "k8sCluster": {
+            "id": "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c",
+            "location": "Sydney"
+          }
+        }
+      }
+    },
+    {
+      "id": "MS15",
+      "isNonMigratable": false,
+      "affinities": {
+        "MS14": {
+          "name": "MS14",
+          "value": 85,
+          "k8sCluster": {
+            "id": "45d20af3-96c5-47db-8149-f92ae47df3e3",
+            "location": "London"
+          }
+        },
+        "MS10": {
+          "name": "MS10",
+          "value": 20,
+          "k8sCluster": {
+            "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
+            "location": "Berlin"
+          }
+        },
+        "MS16": {
+          "name": "MS16",
+          "value": 60,
+          "k8sCluster": {
+            "id": "45d20af3-96c5-47db-8149-f92ae47df3e3",
+            "location": "London"
+          }
+        }
+      }
+    },
+    {
+      "id": "MS16",
+      "isNonMigratable": false,
+      "affinities": {
+        "MS15": {
+          "name": "MS15",
+          "value": 60,
+          "k8sCluster": {
+            "id": "45d20af3-96c5-47db-8149-f92ae47df3e3",
+            "location": "London"
+          }
+        },
+        "MS3": {
+          "name": "MS3",
+          "value": 45,
+          "k8sCluster": {
+            "id": "66472086-5a7b-461e-883e-2d4d4763e34d",
+            "location": "Singapore"
+          }
+        },
+        "MS20": {
+          "name": "MS20",
+          "value": 80,
+          "k8sCluster": {
+            "id": "7b9a0d5e-8d13-4f8a-89e2-51b4733df14c",
+            "location": "Sydney"
+          }
+        }
+      }
+    }
+  ]
+}
