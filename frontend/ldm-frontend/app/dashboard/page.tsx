@@ -1,21 +1,23 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Box,
   Grid,
   Card,
   CardContent,
   Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
+  Button,
 } from "@mui/material";
 import Graph from "../components/Graph";
+import {
+  MaterialReactTable,
+  useMaterialReactTable,
+  type MRT_ColumnDef,
+  type MRT_Row,
+} from "material-react-table";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import { mkConfig, generateCsv, download } from "export-to-csv";
 
 type KeyFigures = {
   appliedMigrations: number;
@@ -30,6 +32,12 @@ type MeasurementData = {
   [key: string]: any;
 };
 
+const csvConfig = mkConfig({
+  fieldSeparator: ",",
+  decimalSeparator: ".",
+  useKeysAsHeaders: true,
+});
+
 const Dashboard: React.FC = () => {
   const [keyFigures, setKeyFigures] = useState<KeyFigures>({
     appliedMigrations: 0,
@@ -42,7 +50,7 @@ const Dashboard: React.FC = () => {
 
   const [graphData, setGraphData] = useState<any>(null);
   const [measurementData, setMeasurementData] = useState<MeasurementData[]>([]);
-  const [measurementKeys, setMeasurementKeys] = useState<string[]>([]);
+  // const [measurementKeys, setMeasurementKeys] = useState<string[]>([]);
 
   const handleWebSocketMessage = (event: MessageEvent) => {
     const data = JSON.parse(event.data);
@@ -88,10 +96,10 @@ const Dashboard: React.FC = () => {
           }));
 
           setMeasurementData((prev) => [...prev, enrichedData]);
-          setMeasurementKeys((prevKeys) => {
-            const newKeys = Object.keys(enrichedData);
-            return Array.from(new Set([...prevKeys, ...newKeys]));
-          });
+          // setMeasurementKeys((prevKeys) => {
+          //   const newKeys = Object.keys(enrichedData);
+          //   return Array.from(new Set([...prevKeys, ...newKeys]));
+          // });
           break;
         default:
           console.warn("Unhandled WebSocket message:", data);
@@ -118,6 +126,110 @@ const Dashboard: React.FC = () => {
       sockets.forEach((socket) => socket.close());
     };
   }, []);
+
+  // Memoized columns definition
+  const columns = useMemo<MRT_ColumnDef<MeasurementData>[]>(
+    () => [
+      {
+        accessorKey: "processId",
+        header: "Process ID",
+        size: 150,
+      },
+      {
+        accessorKey: "processName",
+        header: "Process Name",
+        size: 200,
+      },
+      {
+        accessorKey: "result",
+        header: "Result",
+        size: 150,
+      },
+      {
+        accessorKey: "startTime",
+        header: "Start Time",
+        size: 200,
+      },
+      {
+        accessorKey: "endTime",
+        header: "End Time",
+        size: 200,
+      },
+      {
+        accessorKey: "durationInMs",
+        header: "Duration (ms)",
+        size: 150,
+      },
+      {
+        accessorKey: "createdBy",
+        header: "Created By",
+        size: 200,
+      },
+    ],
+    [] // Ensures memoization
+  );
+
+  const handleExportRows = (rows: MRT_Row<MeasurementData>[]) => {
+    const rowData = rows.map((row) => row.original);
+    const csv = generateCsv(csvConfig)(rowData);
+    download(csvConfig)(csv);
+  };
+
+  const handleExportData = () => {
+    const csv = generateCsv(csvConfig)(measurementData);
+    download(csvConfig)(csv);
+  };
+
+  const table = useMaterialReactTable({
+    columns,
+    data: measurementData, //data must be memoized or stable (useState, useMemo, defined outside of this component, etc.)
+    renderTopToolbarCustomActions: ({ table }) => (
+      <Box
+        sx={{
+          display: "flex",
+          gap: "16px",
+          padding: "8px",
+          flexWrap: "wrap",
+        }}
+      >
+        <Button
+          //export all data that is currently in the table (ignore pagination, sorting, filtering, etc.)
+          onClick={handleExportData}
+          startIcon={<FileDownloadIcon />}
+        >
+          Export All Data
+        </Button>
+        <Button
+          disabled={table.getPrePaginationRowModel().rows.length === 0}
+          //export all rows, including from the next page, (still respects filtering and sorting)
+          onClick={() =>
+            handleExportRows(table.getPrePaginationRowModel().rows)
+          }
+          startIcon={<FileDownloadIcon />}
+        >
+          Export All Rows
+        </Button>
+        <Button
+          disabled={table.getRowModel().rows.length === 0}
+          //export all rows as seen on the screen (respects pagination, sorting, filtering, etc.)
+          onClick={() => handleExportRows(table.getRowModel().rows)}
+          startIcon={<FileDownloadIcon />}
+        >
+          Export Page Rows
+        </Button>
+        <Button
+          disabled={
+            !table.getIsSomeRowsSelected() && !table.getIsAllRowsSelected()
+          }
+          //only export selected rows
+          onClick={() => handleExportRows(table.getSelectedRowModel().rows)}
+          startIcon={<FileDownloadIcon />}
+        >
+          Export Selected Rows
+        </Button>
+      </Box>
+    ),
+  });
 
   return (
     <Box sx={{ padding: 4 }}>
@@ -157,39 +269,14 @@ const Dashboard: React.FC = () => {
         </Card>
       </Box>
 
-      {/* Measurement Data Table Section */}
-      <Box sx={{ marginTop: 4 }}>
+      {/* Measurement Data Table */}
+      <Box>
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
               Measurement Data
             </Typography>
-            {measurementData.length > 0 ? (
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      {measurementKeys.map((key) => (
-                        <TableCell key={key}>{key}</TableCell>
-                      ))}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {measurementData.map((row, index) => (
-                      <TableRow key={index}>
-                        {measurementKeys.map((key) => (
-                          <TableCell key={key}>{row[key]}</TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            ) : (
-              <Typography color="textSecondary">
-                No measurement data available.
-              </Typography>
-            )}
+            <MaterialReactTable table={table} />;
           </CardContent>
         </Card>
       </Box>
