@@ -66,7 +66,7 @@ ldm:
   proposal:
     interval: ${LDM_PROPOSAL_INTERVAL:15}
     request-timeout: ${LDM_PROPOSAL_REQUEST_TIMEOUT:20}
-    threshold: ${LDM_PROPOSAL_THRESHOLD:25}
+    threshold: ${LDM_PROPOSAL_THRESHOLD:0.2}
     scaling-factor: ${LDM_PROPOSAL_SCALING_FACTOR:20}
   voting:
     threshold: ${LDM_VOTING_THRESHOLD:0.3}
@@ -77,6 +77,7 @@ ldm:
     functional: ${LDM_AFFINITY_WEIGHT_FUNCTIONAL:0.2}
     operational: ${LDM_AFFINITY_WEIGHT_OPERATIONAL:0.15}
     privacy: ${LDM_AFFINITY_WEIGHT_PRIVACY:0.1}
+    operational-balance-factor: ${LDM_AFFINITY_OPERATIONAL_BALANCE:0.5}
   migration:
     mode: ${LDM_MIGRATION_MODE:experiment}
   monitoring:
