@@ -39,3 +39,31 @@ nb-configuration.xml
 /.quarkus/cli/plugins/
 # TLS Certificates
 .certs/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# Build
+build/
+.gradle/
+bin/
+out/
+
+# Runtime
+raft-storage/
+*.log
+.env
+
+# Frontend
+frontend/ldm-frontend/node_modules/
+frontend/ldm-frontend/.next/
+frontend/ldm-frontend/out/
+
+# OS
+.DS_Store
+Thumbs.db
