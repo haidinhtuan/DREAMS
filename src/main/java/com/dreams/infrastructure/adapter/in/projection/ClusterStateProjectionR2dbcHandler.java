@@ -207,6 +207,10 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
                                                 ),
                                                 null,
                                                 null,
+                                                null,
+                                                null,
+                                                null,
+                                                0,
                                                 0.0,
                                                 0.0
                                         );

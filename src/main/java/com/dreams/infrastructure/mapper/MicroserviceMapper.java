@@ -18,12 +18,20 @@ public interface MicroserviceMapper {
     @Mapping(target = "isNonMigratable", source = "protoMicroservice.nonMigratable")
     @Mapping(target = "affinities", expression = "java(mapToDomainAffinities(protoMicroservice))")
     @Mapping(target = "dataExchangedWithServices", expression = "java(mapProtoToDomainDataExchangeMap(protoMicroservice))")
+    @Mapping(target = "messagesExchangedWithServices", ignore = true)
+    @Mapping(target = "dependsOnServices", ignore = true)
+    @Mapping(target = "sharedDeploymentEvents", ignore = true)
+    @Mapping(target = "privacyLevel", ignore = true)
     Microservice toDomainModel(MigrationActionOuterClass.Microservice protoMicroservice);
 
     @Mapping(target = "k8sCluster", source = "k8SCluster")
     @Mapping(target = "isNonMigratable", source = "nonMigratable")
     @Mapping(target = "affinities", expression = "java(mapToDomainAffinities(protoMicroservice))")
     @Mapping(target = "dataExchangedWithServices", expression = "java(mapProtoToDomainDataExchangeMap(protoMicroservice))")
+    @Mapping(target = "messagesExchangedWithServices", ignore = true)
+    @Mapping(target = "dependsOnServices", ignore = true)
+    @Mapping(target = "sharedDeploymentEvents", ignore = true)
+    @Mapping(target = "privacyLevel", ignore = true)
     Microservice toDomainModel(EvaluateMigrationProposalOuterClass.Microservice protoMicroservice);
 
     default void mapAffinities(MigrationActionOuterClass.Microservice.Builder builder, Map<Microservice, Double> affinities) {

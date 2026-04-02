@@ -60,7 +60,12 @@ public class DomainManager {
                 .transformToUni(migrationActionEvent -> {
                     Microservice migratedMicroservice = new Microservice(migrationAction.microservice().getId(), migrationAction.microservice().getName()
                             , migrationAction.microservice().isNonMigratable(), migrationAction.targetK8sCluster(), migrationAction.microservice().getAffinities(),
-                            migrationAction.microservice().getDataExchangedWithServices(), migrationAction.microservice().getCpuUsage(), migrationAction.microservice().getMemoryUsage());
+                            migrationAction.microservice().getDataExchangedWithServices(),
+                            migrationAction.microservice().getMessagesExchangedWithServices(),
+                            migrationAction.microservice().getDependsOnServices(),
+                            migrationAction.microservice().getSharedDeploymentEvents(),
+                            migrationAction.microservice().getPrivacyLevel(),
+                            migrationAction.microservice().getCpuUsage(), migrationAction.microservice().getMemoryUsage());
                     if (migrationAction.targetK8sCluster().getId().equalsIgnoreCase(this.ldmConfig.id())) {
                         // New cluster of the candidate
                         log.debug("Applied migration action and added the corresponding microservice to the local state: {}", migrationAction);

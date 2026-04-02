@@ -119,7 +119,7 @@ public class LdmStateService {
                 String k8sClusterLocation = matcher.group(5);
 
                 // Create and return the Microservice object
-                return new Microservice(id, name, isNonMigratable, new K8sCluster(k8sClusterId, k8sClusterLocation), null, null, 0.0, 0.0);
+                return new Microservice(id, name, isNonMigratable, new K8sCluster(k8sClusterId, k8sClusterLocation), null, null, null, null, null, 0, 0.0, 0.0);
             } else {
                 throw new IllegalArgumentException("Invalid Microservice string format: " + microserviceString);
             }
