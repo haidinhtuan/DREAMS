@@ -2,6 +2,7 @@ package com.dreams.infrastructure.config;
 
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithName;
 
 @ConfigMapping(prefix = "ldm")
 public interface LdmConfig {
@@ -13,6 +14,9 @@ public interface LdmConfig {
     Voting voting();
 
     LatenciesCheck latenciesCheck();
+
+    @WithName("affinity-weights")
+    AffinityWeights affinityWeights();
 
     interface LatenciesCheck {
         @WithDefault("5")
@@ -55,5 +59,18 @@ public interface LdmConfig {
          */
         @WithDefault("10")
         double scalingFactor();
+    }
+
+    interface AffinityWeights {
+        @WithDefault("0.3")
+        double data();
+        @WithDefault("0.25")
+        double coupling();
+        @WithDefault("0.2")
+        double functional();
+        @WithDefault("0.15")
+        double operational();
+        @WithDefault("0.1")
+        double privacy();
     }
 }

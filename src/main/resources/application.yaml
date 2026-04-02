@@ -71,6 +71,12 @@ ldm:
   voting:
     threshold: ${LDM_VOTING_THRESHOLD:0.3}
     scaling-factor: ${LDM_VOTING_SCALING_FACTOR:10}
+  affinity-weights:
+    data: ${LDM_AFFINITY_WEIGHT_DATA:0.3}
+    coupling: ${LDM_AFFINITY_WEIGHT_COUPLING:0.25}
+    functional: ${LDM_AFFINITY_WEIGHT_FUNCTIONAL:0.2}
+    operational: ${LDM_AFFINITY_WEIGHT_OPERATIONAL:0.15}
+    privacy: ${LDM_AFFINITY_WEIGHT_PRIVACY:0.1}
 # Raft Configuration
 raft:
   server:
