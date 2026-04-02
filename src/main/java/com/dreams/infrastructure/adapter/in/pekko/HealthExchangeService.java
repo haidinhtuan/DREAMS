@@ -7,9 +7,9 @@ import org.apache.pekko.actor.typed.javadsl.Behaviors;
 import org.apache.pekko.actor.typed.receptionist.Receptionist;
 import org.apache.pekko.actor.typed.receptionist.ServiceKey;
 
-public class PingService {
+public class HealthExchangeService {
     public static final ServiceKey<PingPong.Ping> PING_SERVICE_KEY =
-            ServiceKey.create(PingPong.Ping.class, "PingService");
+            ServiceKey.create(PingPong.Ping.class, "HealthExchangeService");
 
     public static Behavior<PingPong.Ping> create(String ldmId) {
         // Wrap behavior creation with supervision strategy
@@ -31,11 +31,11 @@ public class PingService {
                         return Behaviors.unhandled();
                     })
                     .onSignal(PreRestart.class, signal -> {
-                        context.getLog().warn("PreRestart Signal Received on PingService: {}", PING_SERVICE_KEY.id());
+                        context.getLog().warn("PreRestart Signal Received on HealthExchangeService: {}", PING_SERVICE_KEY.id());
                         return Behaviors.same();
                     })
                     .onSignal(PostStop.class, signal -> {
-                        context.getLog().info("PostStop Signal Received on PingService: {}", PING_SERVICE_KEY.id());
+                        context.getLog().info("PostStop Signal Received on HealthExchangeService: {}", PING_SERVICE_KEY.id());
                         return Behaviors.same();
                     })
                     .build(); // Build the behavior
@@ -45,7 +45,7 @@ public class PingService {
     // Method to register with the Receptionist
     private static void registerWithReceptionist(ActorContext<PingPong.Ping> context) {
         context.getSystem().receptionist().tell(Receptionist.register(PING_SERVICE_KEY, context.getSelf()));
-        context.getLog().info("Registered PingService with Receptionist under key: {}", PING_SERVICE_KEY.id());
+        context.getLog().info("Registered HealthExchangeService with Receptionist under key: {}", PING_SERVICE_KEY.id());
     }
 
     // Handle incoming Ping messages

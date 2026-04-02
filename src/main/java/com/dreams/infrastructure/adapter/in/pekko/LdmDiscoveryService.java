@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Slf4j
-public class ClusterMembershipSync {
+public class LdmDiscoveryService {
 
     // Factory method to create the behavior
     public static Behavior<ClusterEvent.MemberEvent> create(String ldmId, RaftClient ratisClient, ActorSystem<?> system) {
