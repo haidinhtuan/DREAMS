@@ -19,6 +19,9 @@ import {
 import FileDownloadIcon from "@mui/icons-material/FileDownload";
 import { mkConfig, generateCsv, download } from "export-to-csv";
 
+const WS_HOST = process.env.NEXT_PUBLIC_WS_HOST || "localhost";
+const WS_PORTS = (process.env.NEXT_PUBLIC_WS_PORTS || "8080,8081,8082,8083,8084,8085").split(",");
+
 type KeyFigures = {
   appliedMigrations: number;
   lastMigratedMicroservice: string;
@@ -29,7 +32,15 @@ type KeyFigures = {
 };
 
 type MeasurementData = {
-  [key: string]: any;
+  processId?: string;
+  processName?: string;
+  result?: string;
+  startTime?: string;
+  endTime?: string;
+  durationInMs?: number;
+  createdBy?: string;
+  timestamp?: string;
+  [key: string]: string | number | undefined;
 };
 
 const csvConfig = mkConfig({
@@ -48,12 +59,19 @@ const Dashboard: React.FC = () => {
     createdBy: "N/A", // Initial value
   });
 
-  const [graphData, setGraphData] = useState<any>(null);
+  const [graphData, setGraphData] = useState<{
+    nodes: { data: { id: string; label: string; clusterId: string; location: string } }[];
+    edges: { data: { source: string; target: string; weight: number } }[];
+  } | null>(null);
   const [measurementData, setMeasurementData] = useState<MeasurementData[]>([]);
-  // const [measurementKeys, setMeasurementKeys] = useState<string[]>([]);
-
   const handleWebSocketMessage = (event: MessageEvent) => {
-    const data = JSON.parse(event.data);
+    let data;
+    try {
+      data = JSON.parse(event.data);
+    } catch (e) {
+      console.error("Failed to parse WebSocket message:", e);
+      return;
+    }
 
     if (data.type) {
       switch (data.type) {
@@ -96,10 +114,6 @@ const Dashboard: React.FC = () => {
           }));
 
           setMeasurementData((prev) => [...prev, enrichedData]);
-          // setMeasurementKeys((prevKeys) => {
-          //   const newKeys = Object.keys(enrichedData);
-          //   return Array.from(new Set([...prevKeys, ...newKeys]));
-          // });
           break;
         default:
           console.warn("Unhandled WebSocket message:", data);
@@ -108,19 +122,16 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    const sockets = [
-      new WebSocket("ws://localhost:8080/dashboard"),
-      new WebSocket("ws://localhost:8081/dashboard"),
-      new WebSocket("ws://localhost:8082/dashboard"),
-      new WebSocket("ws://localhost:8083/dashboard"),
-      new WebSocket("ws://localhost:8084/dashboard"),
-      new WebSocket("ws://localhost:8085/dashboard"),
-    ];
+    const sockets = WS_PORTS.map(
+      (port) => new WebSocket(`ws://${WS_HOST}:${port.trim()}/dashboard`)
+    );
 
     sockets.forEach((socket) => {
       socket.onopen = () =>
         console.log(`WebSocket connection established: ${socket.url}`);
       socket.onmessage = handleWebSocketMessage;
+      socket.onerror = (error) =>
+        console.error(`WebSocket error on ${socket.url}:`, error);
       socket.onclose = () =>
         console.log(`WebSocket connection closed: ${socket.url}`);
     });

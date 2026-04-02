@@ -125,7 +125,7 @@ const Graph: React.FC<GraphProps> = ({ data }) => {
   };
 
   return (
-    <div style={{ border: "1px solid red", width: "100%", height: "100%" }}>
+    <div style={{ width: "100%", height: "100%" }}>
       <CytoscapeComponent
         elements={data ? [...data.nodes, ...data.edges] : []}
         layout={fcoseLayout}
