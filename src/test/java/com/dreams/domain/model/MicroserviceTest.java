@@ -1,4 +1,4 @@
-package com.ldm.domain.model;
+package com.dreams.domain.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,6 @@
-package com.ldm.domain.service.impl;
+package com.dreams.domain.service.impl;
 
-import com.ldm.infrastructure.config.LdmConfig;
+import com.dreams.infrastructure.config.LdmConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
