@@ -364,6 +364,23 @@ DREAMS builds on a series of prior work on service affinity and microservice man
 
 4. **H. Dinh-Tuan, K. Katsarou, and P. Herbke**, "Optimizing microservices with hyperparameter optimization," *2021 17th International Conference on Mobility, Sensing and Networking (MSN)*, IEEE, 2021. [[IEEE]](https://ieeexplore.ieee.org/document/9751522/)
 
+## Citation
+
+If you use this work, please cite:
+
+```bibtex
+@INPROCEEDINGS{11250481,
+  author={Dinh-Tuan, Hai and Nguyen, Tien Hung and Pandey, Sanjeet Raj},
+  booktitle={2025 International Symposium on Networks, Computers and Communications (ISNCC)}, 
+  title={DREAMS: Decentralized Resource Allocation and Service Management across the Compute Continuum Using Service Affinity}, 
+  year={2025},
+  volume={},
+  number={},
+  pages={1-8},
+  keywords={Fault tolerance;Scalability;Fault tolerant systems;Microservice architectures;Production;Fourth Industrial Revolution;Resource management;Optimization;Smart manufacturing;Manufacturing systems;compute continuum;microservices;decentralized optimization;Industry 4.0;smart manufacturing},
+  doi={10.1109/ISNCC66965.2025.11250481}}
+```
+
 ## License
 
 This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
