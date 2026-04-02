@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package com.ldm.infrastructure.serialization.protobuf;
+package com.dreams.infrastructure.serialization.protobuf;
 
 // Represents a Ping message
 message Ping {
