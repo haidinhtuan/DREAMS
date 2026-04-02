@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Singleton
 @Data
 @Slf4j
-public class MeasurementService {
+public class MetricsAggregator {
 
     private final ConcurrentHashMap<String, MeasurementData> measurements = new ConcurrentHashMap<>();
 

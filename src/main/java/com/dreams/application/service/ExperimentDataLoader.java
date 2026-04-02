@@ -12,7 +12,7 @@ import java.io.IOException;
 //@IfBuildProfile("experiment")
 @ApplicationScoped
 @Slf4j
-public class TestDataInitializer {
+public class ExperimentDataLoader {
     @Inject
     ObjectMapper objectMapper; // Inject ObjectMapper provided by Quarkus
 

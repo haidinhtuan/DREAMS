@@ -19,14 +19,14 @@ import java.util.Map;
 @ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j
-public class TestClusterMonitoringServiceMock implements ClusterMonitoringService {
+public class ClusterMonitoringMock implements ClusterMonitoringService {
 
     @Getter
     public static Map<String, Long> latencyToLDMs;
 
-    private final MicroservicesCache microservicesCache;
+    private final ServiceHealthMonitor microservicesCache;
 
-    private final TestDataInitializer testDataInitializer;
+    private final ExperimentDataLoader testDataInitializer;
 
     private final TestDataConfig testDataConfig;
 
