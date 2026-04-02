@@ -255,11 +255,11 @@ Then run with:
 ### Compiling Protobuf Files
 
 ```bash
-protoc -I=src/main/proto/com/ldm/infrastructure/serialization \
+protoc -I=src/main/proto/com/dreams/infrastructure/serialization \
   --java_out=src/main/java \
-  src/main/proto/com/ldm/infrastructure/serialization/migration_action.proto \
-  src/main/proto/com/ldm/infrastructure/serialization/ping_pong.proto \
-  src/main/proto/com/ldm/infrastructure/serialization/evaluate_migration_proposal.proto
+  src/main/proto/com/dreams/infrastructure/serialization/migration_action.proto \
+  src/main/proto/com/dreams/infrastructure/serialization/ping_pong.proto \
+  src/main/proto/com/dreams/infrastructure/serialization/evaluate_migration_proposal.proto
 ```
 
 ### Dashboard
@@ -281,7 +281,7 @@ The frontend connects via WebSocket to the LDM backend (e.g., `ws://localhost:80
 
 ```
 DREAMS/
-├── src/main/java/com/ldm/
+├── src/main/java/com/dreams/
 │   ├── application/                 # Use cases and application services
 │   │   ├── port/                   # Port interfaces
 │   │   └── service/                # DomainManager, caches, state services
