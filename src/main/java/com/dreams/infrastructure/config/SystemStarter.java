@@ -4,19 +4,22 @@ import com.dreams.application.port.ClusterMonitoringService;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
-import lombok.RequiredArgsConstructor;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
 @ApplicationScoped
-@RequiredArgsConstructor
 @Slf4j
 public class SystemStarter {
 
-    private final ClusterMonitoringService clusterMonitoringService;
-    private final RaftServerManager raftServerManager;
+    @Inject
+    Instance<ClusterMonitoringService> clusterMonitoringService;
+
+    @Inject
+    RaftServerManager raftServerManager;
 
     public void onStart(@Observes StartupEvent event) {
-        clusterMonitoringService.getMicroservicesFromCluster();
+        clusterMonitoringService.get().getMicroservicesFromCluster();
 
         raftServerManager.startRaftServer();
 

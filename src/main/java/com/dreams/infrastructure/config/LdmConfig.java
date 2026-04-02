@@ -73,4 +73,18 @@ public interface LdmConfig {
         @WithDefault("0.1")
         double privacy();
     }
+
+    Migration migration();
+
+    interface Migration {
+        @WithDefault("experiment")
+        String mode();
+    }
+
+    Monitoring monitoring();
+
+    interface Monitoring {
+        @WithDefault("experiment")
+        String mode();
+    }
 }

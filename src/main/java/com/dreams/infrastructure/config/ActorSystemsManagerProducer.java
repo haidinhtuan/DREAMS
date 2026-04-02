@@ -11,6 +11,7 @@ import com.dreams.infrastructure.mapper.MicroserviceMapper;
 import com.dreams.infrastructure.mapper.MigrationMapper;
 import com.dreams.shared.constants.LeaderElectionModeEnum;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -38,7 +39,7 @@ public class ActorSystemsManagerProducer {
     ServiceHealthMonitor microservicesCache;
 
     @Inject
-    MigrationService migrationService;
+    Instance<MigrationService> migrationService;
 
     @Inject
     ObjectMapper objectMapper;
@@ -76,7 +77,7 @@ public class ActorSystemsManagerProducer {
 
         LDMStateMachine ldmStateMachine = new LDMStateMachine(
                 new RaftConsensusHandler(domainManager),
-                migrationService,
+                migrationService.get(),
                 raftLeaderChangeHandler,
                 migrationMapper,
                 microservicesCache, dashboardWebSocket);

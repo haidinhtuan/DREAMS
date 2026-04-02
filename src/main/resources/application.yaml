@@ -77,6 +77,10 @@ ldm:
     functional: ${LDM_AFFINITY_WEIGHT_FUNCTIONAL:0.2}
     operational: ${LDM_AFFINITY_WEIGHT_OPERATIONAL:0.15}
     privacy: ${LDM_AFFINITY_WEIGHT_PRIVACY:0.1}
+  migration:
+    mode: ${LDM_MIGRATION_MODE:experiment}
+  monitoring:
+    mode: ${LDM_MONITORING_MODE:experiment}
 # Raft Configuration
 raft:
   server:
