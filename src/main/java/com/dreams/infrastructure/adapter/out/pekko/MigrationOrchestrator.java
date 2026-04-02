@@ -1,7 +1,7 @@
 package com.dreams.infrastructure.adapter.out.pekko;
 
 import com.dreams.application.port.LeaderChangeHandler;
-import com.dreams.application.service.MeasurementService;
+import com.dreams.application.service.MetricsAggregator;
 import com.dreams.domain.measurement.MeasurementData;
 import com.dreams.domain.model.MigrationAction;
 import com.dreams.domain.model.MigrationCandidate;
@@ -20,14 +20,14 @@ import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
 
 @Slf4j
-public class MigrationExecutor {
+public class MigrationOrchestrator {
 
     static void sendMigrationAction(
             MigrationCandidate migrationCandidate,
             MigrationMapper migrationMapper,
             RaftClient raftClient,
             String processId,
-            MeasurementService measurementService,
+            MetricsAggregator measurementService,
             DashboardWebSocket dashboardWebSocket
 
     ) {
@@ -55,7 +55,7 @@ public class MigrationExecutor {
             LDMStateMachine LDMStateMachine,
             LeaderChangeHandler<RaftGroupMemberId, RaftPeerId, RaftServer, RaftGroupId> leaderChangeHandler,
             String processId,
-            MeasurementService measurementService,
+            MetricsAggregator measurementService,
             String triggerReason,
             DashboardWebSocket dashboardWebSocket
     ) {
