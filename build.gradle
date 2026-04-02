@@ -31,6 +31,7 @@ dependencies {
     implementation 'org.apache.ratis:ratis-metrics-dropwizard3:3.1.1'
     implementation 'org.apache.ratis:ratis-server:3.1.1'
     implementation 'io.quarkus:quarkus-jackson'
+    implementation 'io.quarkus:quarkus-kubernetes-client'
     compileOnly 'org.projectlombok:lombok:1.18.34'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
