@@ -28,8 +28,8 @@ quarkus:
   container-image:
     build: true
     push: false
-    name: local-domain-manager
-    group: tienhngnguyen
+    name: dreams
+    group: haidinhtuan
     registry: docker.io
   cache:
     caffeine:
@@ -102,7 +102,7 @@ raft:
         port: ${CLUSTER_PEER_6_PORT:4005}
 # Test Data
 testdata:
-  file: ${TEST_DATA_FILE:/Users/tienhungnguyen/private-repo/local-domain-manager/experiments/exp5/LDM1.json}
+  file: ${TEST_DATA_FILE:experiments/exp5/LDM1.json}
 leader:
   election:
     mode: ${LEADER_ELECTION_MODE:DEFAULT}

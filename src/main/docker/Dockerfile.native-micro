@@ -10,11 +10,11 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.native-micro -t quarkus/local-domain-manager .
+# docker build -f src/main/docker/Dockerfile.native-micro -t quarkus/dreams .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/local-domain-manager
+# docker run -i --rm -p 8080:8080 quarkus/dreams
 #
 ###
 FROM quay.io/quarkus/quarkus-micro-image:2.0

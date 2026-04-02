@@ -2,7 +2,7 @@ version: '3.8'
 services:
   ldm1:
   #    build: .
-    image: tienhngnguyen/local-domain-manager:2.2.0-SNAPSHOT
+    image: haidinhtuan/dreams:2.2.0-SNAPSHOT
     ports:
       - '6000:6000' # Pekko
       - '8080:8080' # Quarkus
@@ -66,7 +66,7 @@ services:
 
   ldm2:
     #    build: .
-    image: tienhngnguyen/local-domain-manager:2.2.0-SNAPSHOT
+    image: haidinhtuan/dreams:2.2.0-SNAPSHOT
     ports:
       - '6001:6001' # Pekko
       - '8081:8081' # Quarkus
@@ -133,7 +133,7 @@ services:
 
   ldm3:
     #    build: .
-    image: tienhngnguyen/local-domain-manager:2.2.0-SNAPSHOT
+    image: haidinhtuan/dreams:2.2.0-SNAPSHOT
     ports:
       - '6002:6002' # Pekko
       - '8082:8082' # Quarkus
@@ -202,7 +202,7 @@ services:
 
   ldm4:
     #    build: .
-    image: tienhngnguyen/local-domain-manager:2.2.0-SNAPSHOT
+    image: haidinhtuan/dreams:2.2.0-SNAPSHOT
     ports:
       - '6003:6003' # Pekko
       - '8083:8083' # Quarkus
@@ -271,7 +271,7 @@ services:
 
   ldm5:
     #    build: .
-    image: tienhngnguyen/local-domain-manager:2.2.0-SNAPSHOT
+    image: haidinhtuan/dreams:2.2.0-SNAPSHOT
     ports:
       - '6004:6004' # Pekko
       - '8084:8084' # Quarkus
@@ -339,7 +339,7 @@ services:
       - ldm1
   ldm6:
     #    build: .
-    image: tienhngnguyen/local-domain-manager:2.2.0-SNAPSHOT
+    image: haidinhtuan/dreams:2.2.0-SNAPSHOT
     ports:
       - '6005:6005' # Pekko
       - '8085:8085' # Quarkus
