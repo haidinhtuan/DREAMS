@@ -6,7 +6,7 @@ quarkus:
     platforms: linux/arm64
   log:
     category:
-      "com.ldm":
+      "com.dreams":
         level: ${LOG_LEVEL:DEBUG}
       "org.apache.pekko":  # Enable debug logs for Apache Pekko
         level: ${LOG_LEVEL:DEBUG}
