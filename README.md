@@ -356,13 +356,13 @@ Set `LEADER_ELECTION_MODE=DEFAULT` for realistic Raft-based leader election, or 
 
 DREAMS builds on a series of prior work on service affinity and microservice management:
 
-1. **H. Dinh-Tuan, T. H. Nguyen, and S. R. Pandey**, "DREAMS: Decentralized Resource Allocation and Service Management across the Compute Continuum Using Service Affinity," *IEEE ISNCC*, 2025. [[IEEE]](https://ieeexplore.ieee.org/document/11250481/)
+1. **H. Dinh-Tuan, T. H. Nguyen, and S. R. Pandey**, "DREAMS: Decentralized Resource Allocation and Service Management across the Compute Continuum Using Service Affinity," *2025 12th International Symposium on Networks, Computers and Communications (ISNCC)*, IEEE, 2025. [[arXiv]](https://arxiv.org/abs/2509.07497)
 
-2. **H. Dinh-Tuan and J. Six**, "SAGA: A Service Affinity Graph-based Approach for Optimized Microservice Placement across the Compute Continuum," *IEEE SmartNets*, 2024. [[IEEE]](https://doi.org/10.1109/SmartNets61466.2024.10577726)
+2. **H. Dinh-Tuan and F. F. Six**, "Optimizing Cloud-Native Services with SAGA: A Service Affinity Graph-Based Approach," *2024 International Conference on Smart Applications, Communications and Networking (SmartNets)*, IEEE, 2024, pp. 1-6. [[IEEE]](https://ieeexplore.ieee.org/document/10577743/) [[arXiv]](https://arxiv.org/abs/2509.05790)
 
-3. **H. Dinh-Tuan and F. Beierle**, "MS2M: A Message-Based Approach for Live Stateful Microservices Migration," *IEEE CIoT*, 2022. [[IEEE]](https://doi.org/10.1109/CIoT53061.2022.9766542)
+3. **H. Dinh-Tuan and F. Beierle**, "MS2M: A message-based approach for live stateful microservices migration," *2022 5th Conference on Cloud and Internet of Things (CIoT)*, IEEE, 2022, pp. 100-107. [[IEEE]](https://doi.org/10.1109/CIoT53061.2022.9766542) [[arXiv]](https://arxiv.org/abs/2203.05622)
 
-4. **H. Dinh-Tuan, N. Mora-Acedo, and M. Jarke**, "Self-Optimizing Microservices: An Automated Tuning Approach via Runtime Search," *IEEE CIoT*, 2022. [[IEEE]](https://doi.org/10.1109/CIoT53061.2022.9751522)
+4. **H. Dinh-Tuan, K. Katsarou, and P. Herbke**, "Optimizing microservices with hyperparameter optimization," *2021 17th International Conference on Mobility, Sensing and Networking (MSN)*, IEEE, 2021. [[IEEE]](https://ieeexplore.ieee.org/document/9751522/)
 
 ## License
 
