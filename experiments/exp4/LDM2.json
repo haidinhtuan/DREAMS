@@ -9,6 +9,7 @@
         {
             "id": "MS4",
             "isNonMigratable": false,
+            "privacyLevel": 4,
             "affinities": {
                 "MS1": {
                     "name": "MS1",
@@ -34,11 +35,27 @@
                         "location": "Singapore"
                     }
                 }
+            },
+            "messagesExchangedWithServices": {
+                "MS1": 620,
+                "MS5": 1100,
+                "MS8": 180
+            },
+            "dependsOnServices": {
+                "MS1": true,
+                "MS5": true,
+                "MS8": false
+            },
+            "sharedDeploymentEvents": {
+                "MS1": 5,
+                "MS5": 19,
+                "MS8": 2
             }
         },
         {
             "id": "MS5",
             "isNonMigratable": false,
+            "privacyLevel": 2,
             "affinities": {
                 "MS1": {
                     "name": "MS1",
@@ -80,11 +97,33 @@
                         "location": "Singapore"
                     }
                 }
+            },
+            "messagesExchangedWithServices": {
+                "MS1": 540,
+                "MS2": 85,
+                "MS4": 1100,
+                "MS6": 1150,
+                "MS9": 380
+            },
+            "dependsOnServices": {
+                "MS1": true,
+                "MS2": false,
+                "MS4": true,
+                "MS6": true,
+                "MS9": false
+            },
+            "sharedDeploymentEvents": {
+                "MS1": 4,
+                "MS2": 1,
+                "MS4": 19,
+                "MS6": 20,
+                "MS9": 3
             }
         },
         {
             "id": "MS6",
             "isNonMigratable": false,
+            "privacyLevel": 5,
             "affinities": {
                 "MS5": {
                     "name": "MS5",
@@ -110,11 +149,27 @@
                         "location": "Singapore"
                     }
                 }
+            },
+            "messagesExchangedWithServices": {
+                "MS5": 1150,
+                "MS7": 1080,
+                "MS9": 450
+            },
+            "dependsOnServices": {
+                "MS5": true,
+                "MS7": true,
+                "MS9": false
+            },
+            "sharedDeploymentEvents": {
+                "MS5": 20,
+                "MS7": 21,
+                "MS9": 4
             }
         },
         {
             "id": "MS7",
             "isNonMigratable": false,
+            "privacyLevel": 1,
             "affinities": {
                 "MS3": {
                     "name": "MS3",
@@ -141,11 +196,27 @@
                         "location": "Singapore"
                     }
                 }
+            },
+            "messagesExchangedWithServices": {
+                "MS3": 460,
+                "MS6": 1080,
+                "MS10": 290
+            },
+            "dependsOnServices": {
+                "MS3": false,
+                "MS6": true,
+                "MS10": false
+            },
+            "sharedDeploymentEvents": {
+                "MS3": 4,
+                "MS6": 21,
+                "MS10": 3
             }
         },
         {
             "id": "MS10",
             "isNonMigratable": false,
+            "privacyLevel": 3,
             "affinities": {
                 "MS3": {
                     "name": "MS3",
@@ -171,6 +242,21 @@
                         "location": "Singapore"
                     }
                 }
+            },
+            "messagesExchangedWithServices": {
+                "MS3": 40,
+                "MS7": 290,
+                "MS9": 1300
+            },
+            "dependsOnServices": {
+                "MS3": false,
+                "MS7": false,
+                "MS9": true
+            },
+            "sharedDeploymentEvents": {
+                "MS3": 1,
+                "MS7": 3,
+                "MS9": 8
             }
         }
     ]

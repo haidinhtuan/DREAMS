@@ -9,6 +9,7 @@
         {
             "id": "MS8",
             "isNonMigratable": false,
+            "privacyLevel": 4,
             "affinities": {
                 "MS4": {
                     "name": "MS4",
@@ -26,11 +27,24 @@
                         "location": "Singapore"
                     }
                 }
+            },
+            "messagesExchangedWithServices": {
+                "MS4": 180,
+                "MS9": 1350
+            },
+            "dependsOnServices": {
+                "MS4": false,
+                "MS9": true
+            },
+            "sharedDeploymentEvents": {
+                "MS4": 2,
+                "MS9": 22
             }
         },
         {
             "id": "MS9",
             "isNonMigratable": false,
+            "privacyLevel": 5,
             "affinities": {
                 "MS5": {
                     "name": "MS5",
@@ -60,15 +74,34 @@
                     "name": "MS10",
                     "value": 95,
                     "k8sCluster": {
-                        "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422\"",
+                        "id": "36f06b8b-cd19-4c72-a9a6-2f37baf4a422",
                         "location": "Berlin"
                     }
                 }
+            },
+            "messagesExchangedWithServices": {
+                "MS5": 380,
+                "MS6": 450,
+                "MS8": 1350,
+                "MS10": 1300
+            },
+            "dependsOnServices": {
+                "MS5": false,
+                "MS6": false,
+                "MS8": true,
+                "MS10": true
+            },
+            "sharedDeploymentEvents": {
+                "MS5": 3,
+                "MS6": 4,
+                "MS8": 22,
+                "MS10": 8
             }
         },
         {
             "id": "MS3",
             "isNonMigratable": false,
+            "privacyLevel": 2,
             "affinities": {
                 "MS1": {
                     "name": "MS1",
@@ -102,6 +135,24 @@
                         "location": "Berlin"
                     }
                 }
+            },
+            "messagesExchangedWithServices": {
+                "MS1": 1180,
+                "MS2": 1200,
+                "MS7": 460,
+                "MS10": 40
+            },
+            "dependsOnServices": {
+                "MS1": true,
+                "MS2": true,
+                "MS7": false,
+                "MS10": false
+            },
+            "sharedDeploymentEvents": {
+                "MS1": 16,
+                "MS2": 17,
+                "MS7": 4,
+                "MS10": 1
             }
         }
     ]

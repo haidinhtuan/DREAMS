@@ -9,6 +9,7 @@
         {
             "id": "MS1",
             "isNonMigratable": false,
+            "privacyLevel": 3,
             "affinities": {
                 "MS2": {
                     "name": "MS2",
@@ -42,11 +43,30 @@
                         "location": "Berlin"
                     }
                 }
+            },
+            "messagesExchangedWithServices": {
+                "MS2": 1250,
+                "MS3": 1180,
+                "MS4": 620,
+                "MS5": 540
+            },
+            "dependsOnServices": {
+                "MS2": true,
+                "MS3": true,
+                "MS4": true,
+                "MS5": true
+            },
+            "sharedDeploymentEvents": {
+                "MS2": 18,
+                "MS3": 16,
+                "MS4": 5,
+                "MS5": 4
             }
         },
         {
             "id": "MS2",
             "isNonMigratable": false,
+            "privacyLevel": 2,
             "affinities": {
                 "MS1": {
                     "name": "MS1",
@@ -72,6 +92,21 @@
                         "location": "Berlin"
                     }
                 }
+            },
+            "messagesExchangedWithServices": {
+                "MS1": 1250,
+                "MS3": 1200,
+                "MS5": 85
+            },
+            "dependsOnServices": {
+                "MS1": true,
+                "MS3": true,
+                "MS5": false
+            },
+            "sharedDeploymentEvents": {
+                "MS1": 18,
+                "MS3": 17,
+                "MS5": 1
             }
         }
     ]
