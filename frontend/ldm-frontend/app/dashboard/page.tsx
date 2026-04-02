@@ -10,6 +10,7 @@ import {
   Button,
 } from "@mui/material";
 import Graph from "../components/Graph";
+import KeyFigureCard from "../components/KeyFigureCard";
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -122,22 +123,36 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    const sockets = WS_PORTS.map(
-      (port) => new WebSocket(`ws://${WS_HOST}:${port.trim()}/dashboard`)
-    );
+    const connections: WebSocket[] = [];
+    const reconnectDelays: number[] = WS_PORTS.map(() => 1000);
+    const maxDelay = 30000;
 
-    sockets.forEach((socket) => {
-      socket.onopen = () =>
-        console.log(`WebSocket connection established: ${socket.url}`);
+    const connect = (index: number) => {
+      const port = WS_PORTS[index].trim();
+      const socket = new WebSocket(`ws://${WS_HOST}:${port}/dashboard`);
+
+      socket.onopen = () => {
+        console.log(`WebSocket connected: ${socket.url}`);
+        reconnectDelays[index] = 1000; // reset backoff on success
+      };
       socket.onmessage = handleWebSocketMessage;
       socket.onerror = (error) =>
         console.error(`WebSocket error on ${socket.url}:`, error);
-      socket.onclose = () =>
-        console.log(`WebSocket connection closed: ${socket.url}`);
-    });
+      socket.onclose = () => {
+        console.log(`WebSocket closed: ${socket.url}, reconnecting in ${reconnectDelays[index]}ms`);
+        setTimeout(() => {
+          reconnectDelays[index] = Math.min(reconnectDelays[index] * 2, maxDelay);
+          connect(index);
+        }, reconnectDelays[index]);
+      };
+
+      connections[index] = socket;
+    };
+
+    WS_PORTS.forEach((_, index) => connect(index));
 
     return () => {
-      sockets.forEach((socket) => socket.close());
+      connections.forEach((socket) => socket?.close());
     };
   }, []);
 
@@ -255,12 +270,7 @@ const Dashboard: React.FC = () => {
       <Grid container spacing={3}>
         {Object.entries(keyFigures).map(([label, value], index) => (
           <Grid item xs={12} md={4} key={index}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6">{label}</Typography>
-                <Typography>{value}</Typography>
-              </CardContent>
-            </Card>
+            <KeyFigureCard label={label} value={value} />
           </Grid>
         ))}
       </Grid>
