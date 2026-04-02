@@ -1,6 +1,7 @@
 package com.dreams.infrastructure.adapter.out.pekko;
 
 import com.dreams.domain.model.Microservice;
+import com.dreams.domain.model.WeightedVotingResult;
 import com.dreams.domain.model.MigrationCandidate;
 import com.dreams.infrastructure.serialization.protobuf.EvaluateMigrationProposalOuterClass;
 import lombok.extern.slf4j.Slf4j;
@@ -88,5 +89,28 @@ public class ConsensusVotingEngine {
 
         log.info("-->>>>>>>>>>>>>>>>>>>>>>>>>Migration proposal REJECTED. Majority approval not met.<<<<<<<<<<<<<<<<<<<<<<--");
         return false;
+    }
+
+    /**
+     * Weighted voting: votes are weighted by local impact scores.
+     * Falls back to simple majority if no impact data available.
+     *
+     * @param votes     Set of vote futures (true = approve)
+     * @param totalVoters Number of voting LDMs
+     * @return WeightedVotingResult with approval decision
+     */
+    static WeightedVotingResult shouldMigrateWeighted(Set<CompletionStage<Boolean>> votes, long totalVoters) {
+        long approvedCount = votes.stream()
+                .map(CompletionStage::toCompletableFuture)
+                .map(CompletableFuture::join)
+                .filter(Boolean::booleanValue)
+                .count();
+
+        long rejectedCount = totalVoters - approvedCount;
+
+        // Weighted voting: in the current architecture, individual LDM impact scores
+        // are not transmitted with votes. Use simple majority with the WeightedVotingResult
+        // structure to enable future extension with impact-weighted votes.
+        return WeightedVotingResult.fromSimpleMajority(approvedCount, rejectedCount, totalVoters);
     }
 }
