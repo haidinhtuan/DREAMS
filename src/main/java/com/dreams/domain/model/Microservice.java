@@ -38,6 +38,11 @@ public class Microservice {
 
     private Map<Microservice, Double> dataExchangedWithServices;  // Data exchanged with other microservices in MB
 
+    private Map<Microservice, Double> messagesExchangedWithServices; // Coupling: message frequency
+    private Map<Microservice, Boolean> dependsOnServices; // Functional: dependency graph membership
+    private Map<Microservice, Double> sharedDeploymentEvents; // Operational: shared lifecycle events
+    private int privacyLevel; // Privacy: data classification level (1-5)
+
     // ---
 
 
@@ -63,6 +68,26 @@ public class Microservice {
     // Returns the total amount of data exchanged with all other services
     public double getTotalDataExchanged() {
         return this.dataExchangedWithServices.values().stream().mapToDouble(Double::doubleValue).sum();
+    }
+
+    public double getMessagesExchangedWith(Microservice other) {
+        return this.messagesExchangedWithServices != null ? this.messagesExchangedWithServices.getOrDefault(other, 0.0) : 0.0;
+    }
+
+    public double getTotalMessagesExchanged() {
+        return this.messagesExchangedWithServices != null ? this.messagesExchangedWithServices.values().stream().mapToDouble(Double::doubleValue).sum() : 0.0;
+    }
+
+    public boolean hasFunctionalDependency(Microservice other) {
+        return this.dependsOnServices != null && this.dependsOnServices.getOrDefault(other, false);
+    }
+
+    public double getSharedDeploymentEventsWith(Microservice other) {
+        return this.sharedDeploymentEvents != null ? this.sharedDeploymentEvents.getOrDefault(other, 0.0) : 0.0;
+    }
+
+    public double getTotalDeploymentEvents() {
+        return this.sharedDeploymentEvents != null ? this.sharedDeploymentEvents.values().stream().mapToDouble(Double::doubleValue).sum() : 0.0;
     }
 
     // Override equals method to compare Microservice objects based on serviceId
