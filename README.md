@@ -360,7 +360,7 @@ DREAMS builds on a series of prior work on service affinity and microservice man
 
 2. **H. Dinh-Tuan and F. F. Six**, "Optimizing Cloud-Native Services with SAGA: A Service Affinity Graph-Based Approach," *2024 International Conference on Smart Applications, Communications and Networking (SmartNets)*, IEEE, 2024, pp. 1-6. [[IEEE]](https://ieeexplore.ieee.org/document/10577743/) [[arXiv]](https://arxiv.org/abs/2509.05790)
 
-3. **H. Dinh-Tuan and F. Beierle**, "MS2M: A message-based approach for live stateful microservices migration," *2022 5th Conference on Cloud and Internet of Things (CIoT)*, IEEE, 2022, pp. 100-107. [[IEEE]](https://doi.org/10.1109/CIoT53061.2022.9766542) [[arXiv]](https://arxiv.org/abs/2203.05622)
+3. **H. Dinh-Tuan and F. Beierle**, "MS2M: A message-based approach for live stateful microservices migration," *2022 5th Conference on Cloud and Internet of Things (CIoT)*, IEEE, 2022, pp. 100-107. [[IEEE]](https://ieeexplore.ieee.org/document/9766576/) [[arXiv]](https://arxiv.org/abs/2203.05622)
 
 4. **H. Dinh-Tuan, K. Katsarou, and P. Herbke**, "Optimizing microservices with hyperparameter optimization," *2021 17th International Conference on Mobility, Sensing and Networking (MSN)*, IEEE, 2021. [[IEEE]](https://ieeexplore.ieee.org/document/9751522/)
 
