@@ -68,6 +68,7 @@ ldm:
     request-timeout: ${LDM_PROPOSAL_REQUEST_TIMEOUT:20}
     threshold: ${LDM_PROPOSAL_THRESHOLD:0.2}
     scaling-factor: ${LDM_PROPOSAL_SCALING_FACTOR:20}
+    batch-size: ${LDM_PROPOSAL_BATCH_SIZE:1}
   voting:
     threshold: ${LDM_VOTING_THRESHOLD:0.3}
     scaling-factor: ${LDM_VOTING_SCALING_FACTOR:10}

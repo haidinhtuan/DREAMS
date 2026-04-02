@@ -47,6 +47,10 @@ public interface LdmConfig {
          */
         @WithDefault("20")
         double scalingFactor();
+
+        @WithDefault("1")
+        @WithName("batch-size")
+        int batchSize();
     }
 
     interface Voting {
