@@ -21,9 +21,9 @@ class MicroserviceTest {
         clusterBerlin = new K8sCluster("cluster-berlin", "Berlin");
         clusterSingapore = new K8sCluster("cluster-sg", "Singapore");
 
-        ms2 = new Microservice("ms2", "service-2", false, clusterNY, new HashMap<>(), new HashMap<>(), 0.0, 0.0);
-        ms3 = new Microservice("ms3", "service-3", false, clusterBerlin, new HashMap<>(), new HashMap<>(), 0.0, 0.0);
-        ms4 = new Microservice("ms4", "service-4", false, clusterSingapore, new HashMap<>(), new HashMap<>(), 0.0, 0.0);
+        ms2 = new Microservice("ms2", "service-2", false, clusterNY, new HashMap<>(), new HashMap<>(), null, null, null, 0, 0.0, 0.0);
+        ms3 = new Microservice("ms3", "service-3", false, clusterBerlin, new HashMap<>(), new HashMap<>(), null, null, null, 0, 0.0, 0.0);
+        ms4 = new Microservice("ms4", "service-4", false, clusterSingapore, new HashMap<>(), new HashMap<>(), null, null, null, 0, 0.0, 0.0);
 
         Map<Microservice, Double> affinities = new HashMap<>();
         affinities.put(ms2, 90.0);  // same cluster
@@ -34,7 +34,7 @@ class MicroserviceTest {
         dataExchanged.put(ms2, 100.0);
         dataExchanged.put(ms3, 50.0);
 
-        ms1 = new Microservice("ms1", "service-1", false, clusterNY, affinities, dataExchanged, 25.0, 512.0);
+        ms1 = new Microservice("ms1", "service-1", false, clusterNY, affinities, dataExchanged, null, null, null, 0, 25.0, 512.0);
     }
 
     @Test
@@ -61,7 +61,7 @@ class MicroserviceTest {
 
     @Test
     void equals_basedOnId() {
-        Microservice duplicate = new Microservice("ms1", "different-name", true, clusterBerlin, null, null, 0.0, 0.0);
+        Microservice duplicate = new Microservice("ms1", "different-name", true, clusterBerlin, null, null, null, null, null, 0, 0.0, 0.0);
         assertEquals(ms1, duplicate);
         assertEquals(ms1.hashCode(), duplicate.hashCode());
     }
@@ -73,7 +73,7 @@ class MicroserviceTest {
 
     @Test
     void nonMigratable_flag() {
-        Microservice nonMigratable = new Microservice("ms5", "service-5", true, clusterNY, new HashMap<>(), new HashMap<>(), 0.0, 0.0);
+        Microservice nonMigratable = new Microservice("ms5", "service-5", true, clusterNY, new HashMap<>(), new HashMap<>(), null, null, null, 0, 0.0, 0.0);
         assertTrue(nonMigratable.isNonMigratable());
         assertFalse(ms1.isNonMigratable());
     }
