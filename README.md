@@ -366,4 +366,4 @@ DREAMS builds on a series of prior work on service affinity and microservice man
 
 ## License
 
-This project is developed for academic research purposes at Technische Universitat Berlin.
+This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
