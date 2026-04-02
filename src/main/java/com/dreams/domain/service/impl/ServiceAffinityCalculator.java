@@ -10,7 +10,7 @@ import java.util.Map;
 
 @ApplicationScoped
 @Slf4j
-public class DefaultAffinityCalculationService implements AffinityCalculationService {
+public class ServiceAffinityCalculator implements AffinityCalculationService {
 
     /** Penalty applied when microservices are in different privacy/security groups (Eq. 12.3.5). */
     private static final double PRIVACY_VIOLATION_PENALTY = -1.0;

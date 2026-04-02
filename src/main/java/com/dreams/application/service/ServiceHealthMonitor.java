@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @ApplicationScoped
 @Slf4j
-public class MicroservicesCache {
+public class ServiceHealthMonitor {
 
     @CacheName("microservices")
     Cache cache;

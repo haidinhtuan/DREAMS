@@ -8,7 +8,7 @@ import java.util.concurrent.CompletableFuture;
 
 @ApplicationScoped
 @Slf4j
-public class ClusterLatencyCache {
+public class InterDomainLatencyMonitor {
 
     @CacheName("ldm-service-latencies")
     Cache cache;

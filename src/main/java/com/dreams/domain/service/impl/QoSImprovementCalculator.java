@@ -1,6 +1,6 @@
 package com.dreams.domain.service.impl;
 
-import com.dreams.application.service.ClusterLatencyCache;
+import com.dreams.application.service.InterDomainLatencyMonitor;
 import com.dreams.domain.model.K8sCluster;
 import com.dreams.domain.model.Microservice;
 import com.dreams.domain.service.LatencyPenaltyCalculationService;
@@ -14,8 +14,8 @@ import java.util.Map;
 @ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j
-public class DefaultQoSCalculationService implements QoSCalculationService  {
-    private final ClusterLatencyCache clusterLatencyCache;
+public class QoSImprovementCalculator implements QoSCalculationService  {
+    private final InterDomainLatencyMonitor clusterLatencyCache;
     private final LatencyPenaltyCalculationService latencyPenaltyCalculationService;
 
     public Map.Entry<K8sCluster, Double> calculatePotentialQoSImprovement(Microservice microservice) {
