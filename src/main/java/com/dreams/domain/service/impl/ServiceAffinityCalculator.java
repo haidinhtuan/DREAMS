@@ -2,7 +2,9 @@ package com.dreams.domain.service.impl;
 
 import com.dreams.domain.model.Microservice;
 import com.dreams.domain.service.AffinityCalculationService;
+import com.dreams.infrastructure.config.LdmConfig;
 import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -10,7 +12,10 @@ import java.util.Map;
 
 @ApplicationScoped
 @Slf4j
+@RequiredArgsConstructor
 public class ServiceAffinityCalculator implements AffinityCalculationService {
+
+    private final LdmConfig ldmConfig;
 
     /** Penalty applied when microservices are in different privacy/security groups (Eq. 12.3.5). */
     private static final double PRIVACY_VIOLATION_PENALTY = -1.0;
@@ -52,7 +57,7 @@ public class ServiceAffinityCalculator implements AffinityCalculationService {
      */
     @Override
     public double calculateOperationalAffinity(Microservice u, Microservice v) {
-        double gammaOp = 0.5; // Operational balance factor
+        double gammaOp = ldmConfig.affinityWeights().operationalBalanceFactor();
         // Sim_op: shared deployment events as similarity proxy, normalized to [0,1]
         double totalEvents = u.getTotalDeploymentEvents();
         double simOp = totalEvents > 0 ? u.getSharedDeploymentEventsWith(v) / totalEvents : 0.0;

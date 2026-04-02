@@ -72,6 +72,11 @@ public interface LdmConfig {
         double operational();
         @WithDefault("0.1")
         double privacy();
+
+        /** Operational balance factor γ_o (Eq. 12.3.4): 0 = pure similarity, 1 = pure contention */
+        @WithDefault("0.5")
+        @WithName("operational-balance-factor")
+        double operationalBalanceFactor();
     }
 
     Migration migration();

@@ -2,6 +2,7 @@ package com.dreams.domain.service.impl;
 
 import com.dreams.domain.model.K8sCluster;
 import com.dreams.domain.model.Microservice;
+import com.dreams.infrastructure.config.LdmConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class ServiceAffinityCalculatorTest {
 
@@ -19,7 +21,11 @@ class ServiceAffinityCalculatorTest {
 
     @BeforeEach
     void setUp() {
-        service = new ServiceAffinityCalculator();
+        LdmConfig ldmConfig = mock(LdmConfig.class);
+        LdmConfig.AffinityWeights weights = mock(LdmConfig.AffinityWeights.class);
+        when(ldmConfig.affinityWeights()).thenReturn(weights);
+        when(weights.operationalBalanceFactor()).thenReturn(0.5);
+        service = new ServiceAffinityCalculator(ldmConfig);
         clusterA = new K8sCluster("cluster-a", "Location A");
         clusterB = new K8sCluster("cluster-b", "Location B");
     }
