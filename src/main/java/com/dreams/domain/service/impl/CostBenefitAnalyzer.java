@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -119,6 +120,38 @@ public class CostBenefitAnalyzer implements QoSOptimizationService {
         return new MigrationCandidate(bestCandidate, highestQoSImprovement, bestK8sClusterForCandidate, LocalDateTime.now(), this.ldmConfig.id());
     }
 
+
+    public List<MigrationCandidate> findAllMigrationCandidates() {
+        log.debug("Finding all migration candidates above threshold.");
+        List<MigrationCandidate> candidates = new ArrayList<>();
+
+        List<Microservice> microservices = this.microservicesCache.getAllMicroservices()
+                .stream()
+                .filter(microservice -> !microservice.isNonMigratable()).toList();
+
+        if (microservices.isEmpty()) {
+            return candidates;
+        }
+
+        for (Microservice microservice : microservices) {
+            Map.Entry<K8sCluster, Double> potentialQoSImprovementMap = this.qosCalculationService
+                    .calculatePotentialQoSImprovement(microservice);
+            double potentialQoSImprovement = potentialQoSImprovementMap.getValue();
+
+            if (potentialQoSImprovement > 0.0) {
+                candidates.add(new MigrationCandidate(
+                        microservice,
+                        potentialQoSImprovement,
+                        potentialQoSImprovementMap.getKey(),
+                        LocalDateTime.now(),
+                        this.ldmConfig.id()
+                ));
+            }
+        }
+
+        log.debug("Found {} migration candidates above zero QoS improvement", candidates.size());
+        return candidates;
+    }
 
     /**
      * Evaluates a migration proposal for the migrating microservice based on the local microservices' affinity
