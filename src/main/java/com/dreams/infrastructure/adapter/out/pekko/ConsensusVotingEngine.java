@@ -17,9 +17,9 @@ import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class VotingCoordinator {
+public class ConsensusVotingEngine {
 
-    static Set<CompletionStage<Boolean>> collectVotes(Set<ActorRef<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal>> voterSet, MigrationCandidate candidate, Duration timeout, ActorContext<QoSImprovementSuggester.QoSImproveSuggestionProtocol> context) {
+    static Set<CompletionStage<Boolean>> collectVotes(Set<ActorRef<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal>> voterSet, MigrationCandidate candidate, Duration timeout, ActorContext<ProposalManager.QoSImproveSuggestionProtocol> context) {
         // Convert MigrationCandidate to Protobuf format
         Map<Microservice, Double> affinitiesInMicroservice = candidate.microservice().getAffinities();
         Map<String, Double> affinitiesMapForProto = affinitiesInMicroservice

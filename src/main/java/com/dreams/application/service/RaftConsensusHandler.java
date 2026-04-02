@@ -10,9 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Slf4j
 @ApplicationScoped
-public class DefaultConsensusHandler implements ConsensusHandler {
+public class RaftConsensusHandler implements ConsensusHandler {
 
-    private final DomainManager domainManager;
+    private final MigrationEligibilityEvaluator domainManager;
 
     @Override
     public Uni<Void> handle(MigrationAction migrationAction) {

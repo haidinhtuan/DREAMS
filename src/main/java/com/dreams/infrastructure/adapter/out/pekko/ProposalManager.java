@@ -2,8 +2,8 @@ package com.dreams.infrastructure.adapter.out.pekko;
 
 import com.dreams.application.port.LeaderChangeHandler;
 import com.dreams.application.port.MigrationMachine;
-import com.dreams.application.service.DomainManager;
-import com.dreams.application.service.MeasurementService;
+import com.dreams.application.service.MigrationEligibilityEvaluator;
+import com.dreams.application.service.MetricsAggregator;
 import com.dreams.domain.model.MigrationCandidate;
 import com.dreams.infrastructure.adapter.in.pekko.MigrationProposalVoter;
 import com.dreams.infrastructure.adapter.in.ratis.LDMStateMachine;
@@ -36,7 +36,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class QoSImprovementSuggester {
+public class ProposalManager {
 
     public interface QoSImproveSuggestionProtocol {
     }
@@ -51,23 +51,23 @@ public class QoSImprovementSuggester {
     }
 
     // Wrapper class for Receptionist Listing responses
-    public record QoSImprovementSuggesterListings(
+    public record ProposalManagerListings(
             Receptionist.Listing listing) implements QoSImproveSuggestionProtocol {
     }
 
     public static final ServiceKey<QoSImproveSuggestionProtocol> QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY =
-            ServiceKey.create(QoSImproveSuggestionProtocol.class, "QoSImprovementSuggester");
+            ServiceKey.create(QoSImproveSuggestionProtocol.class, "ProposalManager");
 
     public static Behavior<QoSImproveSuggestionProtocol> create(
             RaftClient raftClient,
-            DomainManager domainManager,
+            MigrationEligibilityEvaluator domainManager,
             int interval,
             int timeoutSeconds,
             ActorRef<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal> localVoterRef,
             MigrationMapper migrationMapper,
             MigrationMachine<LDMStateMachine> migrationMachine,
             String ldmId,
-            MeasurementService measurementService,
+            MetricsAggregator measurementService,
             DashboardWebSocket dashboardWebSocket
     ) {
         return Behaviors.setup(context -> Behaviors.withTimers(timersSetup -> {
@@ -78,7 +78,7 @@ public class QoSImprovementSuggester {
 
             // Create a message adapter for Receptionist.Listing to handle listing responses
             ActorRef<Receptionist.Listing> listingResponseAdapter =
-                    context.messageAdapter(Receptionist.Listing.class, QoSImprovementSuggesterListings::new);
+                    context.messageAdapter(Receptionist.Listing.class, ProposalManagerListings::new);
 
             // Register with the receptionist for discoverability
             context.getSystem().receptionist().tell(Receptionist.register(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.getSelf()));
@@ -121,14 +121,14 @@ public class QoSImprovementSuggester {
                     })
                     .onMessage(Shutdown.class, message -> {
                         context.getLog().info("Received shutdown request");
-                        deregisterQoSImprovementSuggester(context);
+                        deregisterProposalManager(context);
                         // Acknowledge shutdown and stop the actor
                         message.replyTo.tell(StatusReply.success(null));
                         return Behaviors.stopped();
                     })
                     .onMessage(StopCommand.class, message -> {
-                        context.getLog().info("Stopping QoSImprovementSuggester");
-                        deregisterQoSImprovementSuggester(context);
+                        context.getLog().info("Stopping ProposalManager");
+                        deregisterProposalManager(context);
                         return Behaviors.stopped();
                     })
                     .build();
@@ -146,7 +146,7 @@ public class QoSImprovementSuggester {
                     Set<ActorRef<QoSImproveSuggestionProtocol>> suggesters = listing.getServiceInstances(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY);
 
                     if (suggesters.isEmpty()) {
-                        log.warn("No QoSImprovementSuggester instances found. Skipping shutdown.");
+                        log.warn("No ProposalManager instances found. Skipping shutdown.");
                         return CompletableFuture.completedFuture(null);
                     }
 
@@ -168,7 +168,7 @@ public class QoSImprovementSuggester {
 
     private static void handleQoSImprovement(
             ActorContext<QoSImproveSuggestionProtocol> context,
-            DomainManager domainManager,
+            MigrationEligibilityEvaluator domainManager,
             RaftClient raftClient,
             ActorRef<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal> localVoterRef,
             MigrationMapper migrationMapper,
@@ -177,7 +177,7 @@ public class QoSImprovementSuggester {
             ActorRef<Receptionist.Listing> listingResponseAdapter,
             Duration timeout,
             String processId,
-            MeasurementService measurementService,
+            MetricsAggregator measurementService,
             DashboardWebSocket dashboardWebSocket
     ) {
         Optional<MigrationCandidate> migrationCandidateOpt = Optional.ofNullable(domainManager.findMigrationCandidate());
@@ -197,7 +197,7 @@ public class QoSImprovementSuggester {
                         measurementService,
                         dashboardWebSocket
                 ),
-                () -> MigrationExecutor.triggerLeaderChange(ldmStateMachine, leaderChangeHandler, processId, measurementService, PerformanceMeasurementConstants.RESULT_NO_PROPOSAL, dashboardWebSocket)
+                () -> MigrationOrchestrator.triggerLeaderChange(ldmStateMachine, leaderChangeHandler, processId, measurementService, PerformanceMeasurementConstants.RESULT_NO_PROPOSAL, dashboardWebSocket)
         );
     }
 
@@ -212,7 +212,7 @@ public class QoSImprovementSuggester {
             LDMStateMachine ldmStateMachine,
             LeaderChangeHandler<RaftGroupMemberId, RaftPeerId, RaftServer, RaftGroupId> leaderChangeHandler,
             String processId,
-            MeasurementService measurementService,
+            MetricsAggregator measurementService,
             DashboardWebSocket dashboardWebSocket
     ) {
         discoverInstances(context, timeout, MigrationProposalVoter.MIGRATION_PROPOSAL_VOTER_KEY, listingResponseAdapter)
@@ -222,14 +222,14 @@ public class QoSImprovementSuggester {
                             .filter(voter -> !voter.equals(localVoterRef))
                             .collect(Collectors.toSet());
 
-                    Set<CompletionStage<Boolean>> votes = VotingCoordinator.collectVotes(remoteVoters, migrationCandidate, timeout, context);
+                    Set<CompletionStage<Boolean>> votes = ConsensusVotingEngine.collectVotes(remoteVoters, migrationCandidate, timeout, context);
 
                     return CompletableFuture.allOf(votes.stream().map(CompletionStage::toCompletableFuture).toArray(CompletableFuture[]::new))
                             .thenAccept(v -> {
-                                if (VotingCoordinator.shouldMigrate(votes, remoteVoters.size())) {
-                                    MigrationExecutor.sendMigrationAction(migrationCandidate, migrationMapper, raftClient, processId, measurementService, dashboardWebSocket);
+                                if (ConsensusVotingEngine.shouldMigrate(votes, remoteVoters.size())) {
+                                    MigrationOrchestrator.sendMigrationAction(migrationCandidate, migrationMapper, raftClient, processId, measurementService, dashboardWebSocket);
                                 } else {
-                                    MigrationExecutor.triggerLeaderChange(ldmStateMachine, leaderChangeHandler, processId, measurementService, PerformanceMeasurementConstants.RESULT_REJECTED, dashboardWebSocket);
+                                    MigrationOrchestrator.triggerLeaderChange(ldmStateMachine, leaderChangeHandler, processId, measurementService, PerformanceMeasurementConstants.RESULT_REJECTED, dashboardWebSocket);
                                 }
                             });
                 })
@@ -239,12 +239,12 @@ public class QoSImprovementSuggester {
                 });
     }
 
-    public static void deregisterQoSImprovementSuggester(ActorContext<QoSImproveSuggestionProtocol> context) {
-        discoverInstances(context, Duration.ofSeconds(5), QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.messageAdapter(Receptionist.Listing.class, QoSImprovementSuggesterListings::new))
+    public static void deregisterProposalManager(ActorContext<QoSImproveSuggestionProtocol> context) {
+        discoverInstances(context, Duration.ofSeconds(5), QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.messageAdapter(Receptionist.Listing.class, ProposalManagerListings::new))
                 .thenAccept(listing -> {
                     if (listing.getServiceInstances(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY).contains(context.getSelf())) {
                         // Deregister from the receptionist
-                        context.getLog().info("Deregistering the QoSImprovementSuggester from the receptionist...");
+                        context.getLog().info("Deregistering the ProposalManager from the receptionist...");
                         context.getSystem().receptionist().tell(Receptionist.deregister(QOS_IMPROVEMENT_SUGGESTER_SCHEDULER_KEY, context.getSelf()));
                     }
                 });

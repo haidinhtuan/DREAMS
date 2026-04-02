@@ -1,7 +1,7 @@
 package com.dreams.infrastructure.adapter.in.ratis;
 
 import com.dreams.application.port.LeaderChangeHandler;
-import com.dreams.application.service.DomainManager;
+import com.dreams.application.service.MigrationEligibilityEvaluator;
 import com.dreams.infrastructure.config.ActorSystemManager;
 import com.dreams.shared.constants.LeaderElectionModeEnum;
 import com.dreams.shared.util.ApplicationUtils;
@@ -19,10 +19,10 @@ import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
 @Slf4j
-public class RaftLeaderChangeHandler implements LeaderChangeHandler<RaftGroupMemberId, RaftPeerId, RaftServer, RaftGroupId> {
+public class LeaderCoordinator implements LeaderChangeHandler<RaftGroupMemberId, RaftPeerId, RaftServer, RaftGroupId> {
 
     private final RaftClient raftClient;
-    private final DomainManager domainManager;
+    private final MigrationEligibilityEvaluator domainManager;
     private final ActorSystemManager actorSystemManager;
 
     private boolean isLeader = false;  // Track whether this node is currently the leader
@@ -40,7 +40,7 @@ public class RaftLeaderChangeHandler implements LeaderChangeHandler<RaftGroupMem
                 // This node just became the leader
                 log.info("This node is now the leader. Starting QoS Improvement Proposal scheduling.");
                 isLeader = true;
-                startQoSImprovementSuggester();
+                startProposalManager();
             } else {
                 log.info("This node is already the leader. No action needed.");
             }
@@ -48,22 +48,22 @@ public class RaftLeaderChangeHandler implements LeaderChangeHandler<RaftGroupMem
             // This node was the leader but no longer is
             log.info("This node has lost leadership. Stopping QoS Improvement Proposal scheduling.");
             isLeader = false;
-            stopQoSImprovementSuggester();
+            stopProposalManager();
         } else {
             log.info("This node is not the leader. No action taken.");
         }
     }
 
-    private void startQoSImprovementSuggester() {
-        // Send command to ActorSystemManager to start QoSImprovementSuggester
-        actorSystemManager.getActorSystem().tell(new ActorSystemManager.StartQoSImprovementSuggester(raftClient, domainManager));
-        log.info("QoSImprovementSuggester actor started successfully.");
+    private void startProposalManager() {
+        // Send command to ActorSystemManager to start ProposalManager
+        actorSystemManager.getActorSystem().tell(new ActorSystemManager.StartProposalManager(raftClient, domainManager));
+        log.info("ProposalManager actor started successfully.");
     }
 
-    private void stopQoSImprovementSuggester() {
-        // Here we would stop the QoSImprovementSuggester actor or send a stop message
-        log.info("Sending stop command to QoSImprovementSuggester actor.");
-        actorSystemManager.getActorSystem().tell(new ActorSystemManager.StopQoSImprovementSuggester());
+    private void stopProposalManager() {
+        // Here we would stop the ProposalManager actor or send a stop message
+        log.info("Sending stop command to ProposalManager actor.");
+        actorSystemManager.getActorSystem().tell(new ActorSystemManager.StopProposalManager());
     }
 
     @Override
