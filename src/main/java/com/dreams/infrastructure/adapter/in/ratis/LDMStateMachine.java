@@ -5,7 +5,7 @@ import com.dreams.application.port.ConsensusHandler;
 import com.dreams.application.port.LeaderChangeHandler;
 import com.dreams.application.port.MigrationMachine;
 import com.dreams.application.port.MigrationService;
-import com.dreams.application.service.MicroservicesCache;
+import com.dreams.application.service.ServiceHealthMonitor;
 import com.dreams.domain.model.MigrationAction;
 import com.dreams.infrastructure.adapter.in.websocket.DashboardWebSocket;
 import com.dreams.infrastructure.config.ActorSystemManager;
@@ -47,7 +47,7 @@ public class LDMStateMachine extends BaseStateMachine implements MigrationMachin
 
     private final MigrationMapper migrationMapper;
 
-    private final MicroservicesCache microservicesCache;
+    private final ServiceHealthMonitor microservicesCache;
 
     private final DashboardWebSocket dashboardWebSocket;
 

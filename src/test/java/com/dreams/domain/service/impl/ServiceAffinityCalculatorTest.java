@@ -11,15 +11,15 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DefaultAffinityCalculationServiceTest {
+class ServiceAffinityCalculatorTest {
 
-    private DefaultAffinityCalculationService service;
+    private ServiceAffinityCalculator service;
     private K8sCluster clusterA;
     private K8sCluster clusterB;
 
     @BeforeEach
     void setUp() {
-        service = new DefaultAffinityCalculationService();
+        service = new ServiceAffinityCalculator();
         clusterA = new K8sCluster("cluster-a", "Location A");
         clusterB = new K8sCluster("cluster-b", "Location B");
     }

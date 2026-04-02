@@ -1,6 +1,6 @@
 package com.dreams.infrastructure.adapter.in.rest;
 
-import com.dreams.infrastructure.adapter.in.ratis.RaftLeaderChangeHandler;
+import com.dreams.infrastructure.adapter.in.ratis.LeaderCoordinator;
 import com.dreams.infrastructure.config.ActorSystemManager;
 import com.dreams.shared.util.ApplicationUtils;
 import io.smallrye.mutiny.Uni;
@@ -43,7 +43,7 @@ public class RaftActionResource {
                         request = ApplicationUtils.createTransferLeadershipRequest(serverId, groupId, null);
                     }
 
-                    return Uni.createFrom().completionStage(RaftLeaderChangeHandler.safeTransferLeadershipAsync(server, request))
+                    return Uni.createFrom().completionStage(LeaderCoordinator.safeTransferLeadershipAsync(server, request))
                             .onItem().transform(unused -> Response.accepted()
                                     .entity("{\"message\":\"Leadership transfer initiated\"}")
                                     .build());

@@ -9,8 +9,8 @@ import lombok.extern.slf4j.Slf4j;
  * Manages communication between LDM instances across domains.
  *
  * The communication logic is implemented in:
- * - {@link com.dreams.infrastructure.adapter.in.pekko.ClusterMembershipSync} (Pekko cluster membership)
- * - {@link com.dreams.infrastructure.adapter.in.pekko.PingService} (health checks + latency measurement)
+ * - {@link com.dreams.infrastructure.adapter.in.pekko.LdmDiscoveryService} (Pekko cluster membership)
+ * - {@link com.dreams.infrastructure.adapter.in.pekko.HealthExchangeService} (health checks + latency measurement)
  * - {@link com.dreams.infrastructure.adapter.out.pekko.PingManager} (ping orchestration)
  */
 @ApplicationScoped
@@ -18,5 +18,5 @@ import lombok.extern.slf4j.Slf4j;
 public class InterDomainCommunicationModule {
     // Inter-domain communication is handled by Apache Pekko clustering.
     // Peer discovery uses Pekko receptionist with gossip-based protocol.
-    // Latency measurement uses PingService with configurable intervals.
+    // Latency measurement uses HealthExchangeService with configurable intervals.
 }

@@ -1,7 +1,7 @@
 package com.dreams.infrastructure.adapter.out.pekko;
 
-import com.dreams.application.service.ClusterLatencyCache;
-import com.dreams.infrastructure.adapter.in.pekko.PingService;
+import com.dreams.application.service.InterDomainLatencyMonitor;
+import com.dreams.infrastructure.adapter.in.pekko.HealthExchangeService;
 import com.dreams.infrastructure.serialization.protobuf.PingPong;
 import org.apache.pekko.actor.typed.ActorRef;
 import org.apache.pekko.actor.typed.Behavior;
@@ -26,7 +26,7 @@ public class PingManager {
         }
     }
 
-    public static Behavior<Command> create(String ldmId, int pingInterval, int maxPingRetry, ClusterLatencyCache cache, ActorRef<PingPong.Ping> selfPingServiceActorRef ) {
+    public static Behavior<Command> create(String ldmId, int pingInterval, int maxPingRetry, InterDomainLatencyMonitor cache, ActorRef<PingPong.Ping> selfHealthExchangeServiceActorRef ) {
         return Behaviors.setup(context -> Behaviors.withTimers(timersSetup -> {
             ActorRef<Receptionist.Listing> listingResponseAdapter =
                     context.messageAdapter(Receptionist.Listing.class, ListingResponse::new);
@@ -35,16 +35,16 @@ public class PingManager {
 
             return Behaviors.receive(Command.class)
                     .onMessage(Tick.class, tick -> {
-                        context.getLog().debug("Retrieving PingServices...");
+                        context.getLog().debug("Retrieving HealthExchangeServices...");
                         context.getSystem().receptionist().tell(
-                                Receptionist.find(PingService.PING_SERVICE_KEY, listingResponseAdapter)
+                                Receptionist.find(HealthExchangeService.PING_SERVICE_KEY, listingResponseAdapter)
                         );
                         return Behaviors.same();
                     })
                     .onMessage(ListingResponse.class, response -> {
-                        response.listing.getServiceInstances(PingService.PING_SERVICE_KEY)
+                        response.listing.getServiceInstances(HealthExchangeService.PING_SERVICE_KEY)
                                 .stream()
-                                .filter(pingServiceRef -> !pingServiceRef.equals(selfPingServiceActorRef))
+                                .filter(pingServiceRef -> !pingServiceRef.equals(selfHealthExchangeServiceActorRef))
                                 .forEach(service -> {
                                     ActorRef<Pinger.Command> pinger = context.spawn(
                                             Pinger.create(service, ldmId, maxPingRetry, cache),

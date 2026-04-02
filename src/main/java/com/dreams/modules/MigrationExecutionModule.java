@@ -9,13 +9,13 @@ import lombok.extern.slf4j.Slf4j;
  * Handles the actual execution of approved migration decisions.
  *
  * The execution logic is implemented in:
- * - {@link com.dreams.infrastructure.adapter.out.pekko.MigrationExecutor} (Raft commit + leader change)
- * - {@link com.dreams.application.service.TestMigrationServiceMock} (simulated migration for evaluation)
+ * - {@link com.dreams.infrastructure.adapter.out.pekko.MigrationOrchestrator} (Raft commit + leader change)
+ * - {@link com.dreams.application.service.MigrationServiceMock} (simulated migration for evaluation)
  */
 @ApplicationScoped
 @Slf4j
 public class MigrationExecutionModule {
-    // Migration execution is handled by MigrationExecutor and the Raft commit flow.
+    // Migration execution is handled by MigrationOrchestrator and the Raft commit flow.
     // In production, this would integrate with Kubernetes APIs for actual container migration.
-    // Currently uses TestMigrationServiceMock for evaluation purposes.
+    // Currently uses MigrationServiceMock for evaluation purposes.
 }

@@ -1,7 +1,7 @@
 package com.dreams.modules;
 
-import com.dreams.application.service.ClusterLatencyCache;
-import com.dreams.application.service.MicroservicesCache;
+import com.dreams.application.service.InterDomainLatencyMonitor;
+import com.dreams.application.service.ServiceHealthMonitor;
 import com.dreams.domain.model.Microservice;
 import com.dreams.domain.service.AffinityCalculationService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -19,10 +19,10 @@ import java.util.List;
 public class DomainMonitoringModule {
 
     @Inject
-    MicroservicesCache microservicesCache;
+    ServiceHealthMonitor microservicesCache;
 
     @Inject
-    ClusterLatencyCache clusterLatencyCache;
+    InterDomainLatencyMonitor clusterLatencyCache;
 
     @Inject
     AffinityCalculationService affinityCalculationService;

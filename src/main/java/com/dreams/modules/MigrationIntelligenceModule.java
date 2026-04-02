@@ -1,6 +1,6 @@
 package com.dreams.modules;
 
-import com.dreams.application.service.DomainManager;
+import com.dreams.application.service.MigrationEligibilityEvaluator;
 import com.dreams.domain.model.Microservice;
 import com.dreams.domain.model.MigrationCandidate;
 import com.dreams.domain.service.QoSOptimizationService;
@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MigrationIntelligenceModule {
 
     @Inject
-    DomainManager domainManager;
+    MigrationEligibilityEvaluator domainManager;
 
     @Inject
     QoSOptimizationService optimizationService;

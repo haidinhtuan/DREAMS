@@ -1,7 +1,7 @@
 package com.dreams.infrastructure.adapter.out.pekko;
 
-import com.dreams.application.service.ClusterLatencyCache;
-import com.dreams.application.service.TestClusterMonitoringServiceMock;
+import com.dreams.application.service.InterDomainLatencyMonitor;
+import com.dreams.application.service.ClusterMonitoringMock;
 import com.dreams.infrastructure.serialization.protobuf.PingPong;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pekko.actor.typed.ActorRef;
@@ -28,7 +28,7 @@ public class Pinger {
     public record WrappedPong(PingPong.Pong pong) implements Command {
     }
 
-    public static Behavior<Command> create(ActorRef<PingPong.Ping> pingService, String ldmId, int maxRetry, ClusterLatencyCache cache) {
+    public static Behavior<Command> create(ActorRef<PingPong.Ping> pingService, String ldmId, int maxRetry, InterDomainLatencyMonitor cache) {
         return Behaviors.setup(context -> new Pinger(context, pingService, ldmId, maxRetry, cache, 0).ping());
     }
 
@@ -37,10 +37,10 @@ public class Pinger {
     private final String ldmId;
 
     private final int maxRetry;
-    private final ClusterLatencyCache cache;
+    private final InterDomainLatencyMonitor cache;
     private final int retryCount;
 
-    private Pinger(ActorContext<Command> context, ActorRef<PingPong.Ping> pingService, String ldmId, int maxRetry, ClusterLatencyCache cache, int retryCount) {
+    private Pinger(ActorContext<Command> context, ActorRef<PingPong.Ping> pingService, String ldmId, int maxRetry, InterDomainLatencyMonitor cache, int retryCount) {
         this.context = context;
         this.pingService = pingService;
         this.ldmId = ldmId;
@@ -79,7 +79,7 @@ public class Pinger {
 
             // TODO: For Testing/Experiments
             if (!isClusterMonitoringEnabled) {
-                Long clusterLatencyFromTestData = TestClusterMonitoringServiceMock.latencyToLDMs.get(msg.pong.getLdmId());
+                Long clusterLatencyFromTestData = ClusterMonitoringMock.latencyToLDMs.get(msg.pong.getLdmId());
                 context.getLog().debug(">> TEST DATA: Latency to {}: {} ns", pingService.path().address(), clusterLatencyFromTestData);
                 cache.cacheClusterLatency(msg.pong.getLdmId(), clusterLatencyFromTestData);
                 //                    long clusterLatencyFromTestData = ExperimentUtil.getClusterLatencyByLdmId(ldmId, testDataConfig);

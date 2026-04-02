@@ -2,10 +2,10 @@ package com.dreams.infrastructure.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.dreams.application.port.MigrationMachine;
-import com.dreams.application.service.ClusterLatencyCache;
-import com.dreams.application.service.DomainManager;
+import com.dreams.application.service.InterDomainLatencyMonitor;
+import com.dreams.application.service.MigrationEligibilityEvaluator;
 import com.dreams.application.service.LdmStateService;
-import com.dreams.application.service.MeasurementService;
+import com.dreams.application.service.MetricsAggregator;
 import com.dreams.domain.model.MigrationAction;
 import com.dreams.domain.model.testdata.ClusterData;
 import com.dreams.infrastructure.adapter.in.pekko.*;
@@ -13,7 +13,7 @@ import com.dreams.infrastructure.adapter.in.projection.ClusterStateProjectionR2d
 import com.dreams.infrastructure.adapter.in.ratis.LDMStateMachine;
 import com.dreams.infrastructure.adapter.in.websocket.DashboardWebSocket;
 import com.dreams.infrastructure.adapter.out.pekko.PingManager;
-import com.dreams.infrastructure.adapter.out.pekko.QoSImprovementSuggester;
+import com.dreams.infrastructure.adapter.out.pekko.ProposalManager;
 import com.dreams.infrastructure.mapper.MicroserviceMapper;
 import com.dreams.infrastructure.mapper.MigrationMapper;
 import com.dreams.infrastructure.serialization.protobuf.EvaluateMigrationProposalOuterClass;
@@ -51,22 +51,22 @@ public class ActorSystemManager {
     public interface Command {
     }
 
-    public record StartQoSImprovementSuggester(RaftClient raftClient, DomainManager domainManager) implements Command {
+    public record StartProposalManager(RaftClient raftClient, MigrationEligibilityEvaluator domainManager) implements Command {
     }
 
     public record InitCluster(ClusterData clusterData) implements Command {}
 
     public record PerformMigrationAction(MigrationAction migrationAction) implements Command {}
 
-    public static class StopQoSImprovementSuggester implements Command {
+    public static class StopProposalManager implements Command {
     }
 
     private ActorSystem<Command> actorSystem;
     private final LdmConfig ldmConfig;
-    private final ClusterLatencyCache clusterLatencyCache;
+    private final InterDomainLatencyMonitor clusterLatencyCache;
     private final RaftClient raftClient;
 
-    private final DomainManager domainManager;
+    private final MigrationEligibilityEvaluator domainManager;
 
     private final MigrationMapper migrationMapper;
 
@@ -80,7 +80,7 @@ public class ActorSystemManager {
 
     private final DashboardWebSocket dashboardWebSocket;
 
-    private final MeasurementService measurementService;
+    private final MetricsAggregator measurementService;
 
     private final DatasourceConfig datasourceConfig;
 
@@ -89,7 +89,7 @@ public class ActorSystemManager {
     private MigrationMachine<LDMStateMachine> migrationMachine;
 
 
-    private ActorRef<QoSImprovementSuggester.QoSImproveSuggestionProtocol> qosImprovementSuggesterRef = null;
+    private ActorRef<ProposalManager.QoSImproveSuggestionProtocol> qosImprovementSuggesterRef = null;
 
     void init() {
         log.info(">> Creating the ActorSystem (ClusterSysten)...");
@@ -100,8 +100,8 @@ public class ActorSystemManager {
         return Behaviors.setup(context -> {
             // Initialize PingManager actor
             ActorRef<PingPong.Ping> pingService = context.spawn(
-                    PingService.create(ldmConfig.id()),
-                    "PingService"
+                    HealthExchangeService.create(ldmConfig.id()),
+                    "HealthExchangeService"
             );
 
             ActorRef<PingManager.Command> pingManager = context.spawn(
@@ -109,10 +109,10 @@ public class ActorSystemManager {
                     "PingManager"
             );
 
-            // Initialize ClusterMembershipSync actor
+            // Initialize LdmDiscoveryService actor
             ActorRef<ClusterEvent.MemberEvent> clusterMembershipSync = context.spawn(
-                    ClusterMembershipSync.create(ldmConfig.id(), raftClient, context.getSystem()),
-                    "ClusterMembershipSync"
+                    LdmDiscoveryService.create(ldmConfig.id(), raftClient, context.getSystem()),
+                    "LdmDiscoveryService"
             );
 
             // Initialize MigrationProposalVoter actor
@@ -146,30 +146,30 @@ public class ActorSystemManager {
             ActorRef<ProjectionBehavior.Command> clusterStateProjector = context.spawn(ProjectionBehavior.create(projection), projection.projectionId().id());
 
             return Behaviors.receive(Command.class)
-                    .onMessage(StartQoSImprovementSuggester.class, msg -> {
+                    .onMessage(StartProposalManager.class, msg -> {
                         if (qosImprovementSuggesterRef == null) {
-                            // Spawn QoSImprovementSuggester actor
+                            // Spawn ProposalManager actor
                             qosImprovementSuggesterRef = context.spawn(
-                                    QoSImprovementSuggester.create(msg.raftClient, msg.domainManager, ldmConfig.proposal().interval(), ldmConfig.proposal().requestTimeout(), migrationProposalVoter, migrationMapper, migrationMachine, ldmConfig.id(), measurementService, dashboardWebSocket),
-                                    "QoSImprovementSuggester"
+                                    ProposalManager.create(msg.raftClient, msg.domainManager, ldmConfig.proposal().interval(), ldmConfig.proposal().requestTimeout(), migrationProposalVoter, migrationMapper, migrationMachine, ldmConfig.id(), measurementService, dashboardWebSocket),
+                                    "ProposalManager"
                             );
 
-                            log.info("## ActorSystemsManager: QoSImprovementSuggester actor created. ##");
+                            log.info("## ActorSystemsManager: ProposalManager actor created. ##");
                         } else {
-                            log.warn("## ActorSystemsManager: QoSImprovementSuggester is already running. ##");
+                            log.warn("## ActorSystemsManager: ProposalManager is already running. ##");
                         }
                         return Behaviors.same();
                     })
-                    .onMessage(StopQoSImprovementSuggester.class, msg -> {
+                    .onMessage(StopProposalManager.class, msg -> {
                         if (qosImprovementSuggesterRef != null) {
-                            // Send a stop message to the QoSImprovementSuggester actor
-                            qosImprovementSuggesterRef.tell(new QoSImprovementSuggester.StopCommand());
-                            log.info("## ActorSystemsManager: Stop command sent to QoSImprovementSuggester actor. ##");
+                            // Send a stop message to the ProposalManager actor
+                            qosImprovementSuggesterRef.tell(new ProposalManager.StopCommand());
+                            log.info("## ActorSystemsManager: Stop command sent to ProposalManager actor. ##");
 
                             // Clear the reference
                             qosImprovementSuggesterRef = null;
                         } else {
-                            log.warn("## ActorSystemsManager: No QoSImprovementSuggester instance is running. ##");
+                            log.warn("## ActorSystemsManager: No ProposalManager instance is running. ##");
                         }
                         return Behaviors.same();
                     })

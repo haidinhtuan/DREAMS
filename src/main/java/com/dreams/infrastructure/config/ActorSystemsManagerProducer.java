@@ -5,7 +5,7 @@ import com.dreams.application.port.MigrationMachine;
 import com.dreams.application.port.MigrationService;
 import com.dreams.application.service.*;
 import com.dreams.infrastructure.adapter.in.ratis.LDMStateMachine;
-import com.dreams.infrastructure.adapter.in.ratis.RaftLeaderChangeHandler;
+import com.dreams.infrastructure.adapter.in.ratis.LeaderCoordinator;
 import com.dreams.infrastructure.adapter.in.websocket.DashboardWebSocket;
 import com.dreams.infrastructure.mapper.MicroserviceMapper;
 import com.dreams.infrastructure.mapper.MigrationMapper;
@@ -25,17 +25,17 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 public class ActorSystemsManagerProducer {
 
     private final LdmConfig ldmConfig;
-    private final ClusterLatencyCache clusterLatencyCache;
+    private final InterDomainLatencyMonitor clusterLatencyCache;
     private final RaftClient raftClient;
 
-    private final DomainManager domainManager;
+    private final MigrationEligibilityEvaluator domainManager;
 
     private final MigrationMapper migrationMapper;
 
     private final MicroserviceMapper microserviceMapper;
 
     @Inject
-    MicroservicesCache microservicesCache;
+    ServiceHealthMonitor microservicesCache;
 
     @Inject
     MigrationService migrationService;
@@ -59,7 +59,7 @@ public class ActorSystemsManagerProducer {
     DashboardWebSocket dashboardWebSocket;
 
     @Inject
-    MeasurementService measurementService;
+    MetricsAggregator measurementService;
 
     @Getter
     @Setter
@@ -70,12 +70,12 @@ public class ActorSystemsManagerProducer {
     @Singleton
     public ActorSystemManager createActorSystemsManager() {
         ActorSystemManager actorSystemManager = new ActorSystemManager(ldmConfig, clusterLatencyCache, raftClient, domainManager, migrationMapper, microserviceMapper, objectMapper, ldmStateService, dashboardWebSocket, measurementService, datasourceConfig);
-        RaftLeaderChangeHandler raftLeaderChangeHandler = new RaftLeaderChangeHandler(raftClient, domainManager, actorSystemManager);
+        LeaderCoordinator raftLeaderChangeHandler = new LeaderCoordinator(raftClient, domainManager, actorSystemManager);
         raftLeaderChangeHandler.setLeaderElectionModeEnum(leaderElectionMode);
         raftLeaderChangeHandler.setDefaultLeader(defaultLeader);
 
         LDMStateMachine ldmStateMachine = new LDMStateMachine(
-                new DefaultConsensusHandler(domainManager),
+                new RaftConsensusHandler(domainManager),
                 migrationService,
                 raftLeaderChangeHandler,
                 migrationMapper,

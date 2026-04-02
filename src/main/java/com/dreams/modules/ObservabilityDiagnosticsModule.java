@@ -1,6 +1,6 @@
 package com.dreams.modules;
 
-import com.dreams.application.service.MeasurementService;
+import com.dreams.application.service.MetricsAggregator;
 import com.dreams.domain.measurement.MeasurementData;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -17,7 +17,7 @@ import java.util.Map;
 public class ObservabilityDiagnosticsModule {
 
     @Inject
-    MeasurementService measurementService;
+    MetricsAggregator measurementService;
 
     public void recordProcessStart(String processId, String processName, long startTime, String createdBy) {
         measurementService.recordStart(processId, processName, startTime, createdBy);

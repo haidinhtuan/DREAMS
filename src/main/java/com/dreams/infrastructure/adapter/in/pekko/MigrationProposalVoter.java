@@ -1,6 +1,6 @@
 package com.dreams.infrastructure.adapter.in.pekko;
 
-import com.dreams.application.service.DomainManager;
+import com.dreams.application.service.MigrationEligibilityEvaluator;
 import com.dreams.domain.model.Microservice;
 import com.dreams.domain.model.MigrationCandidate;
 import com.dreams.infrastructure.mapper.MicroserviceMapper;
@@ -24,7 +24,7 @@ public class MigrationProposalVoter {
     public static final ServiceKey<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal> MIGRATION_PROPOSAL_VOTER_KEY =
             ServiceKey.create(EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal.class, "MigrationProposalVoter");
 
-    public static Behavior<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal> create(String ldmId, DomainManager domainManager, MicroserviceMapper microserviceMapper) {
+    public static Behavior<EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal> create(String ldmId, MigrationEligibilityEvaluator domainManager, MicroserviceMapper microserviceMapper) {
         return Behaviors.setup(context -> {
             context.getSystem().receptionist().tell(Receptionist.register(MIGRATION_PROPOSAL_VOTER_KEY, context.getSelf()));
             return Behaviors.receive(EvaluateMigrationProposalOuterClass.EvaluateMigrationProposal.class)
