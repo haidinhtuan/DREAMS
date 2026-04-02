@@ -15,24 +15,12 @@ public class DefaultAffinityCalculationService implements AffinityCalculationSer
         return u.getDataExchangedWith(v) / u.getTotalDataExchanged();
     }
 
-//    public double calculateCouplingAffinity(Microservice u, Microservice v) {
-//        return u.getMessagesExchangedWith(v) / u.getTotalMessagesExchanged();
-//    }
-
     @Override
     public double calculateTotalAffinity(Microservice u, Microservice v, Map<String, Double> weights) {
         double dataAffinity = calculateDataAffinity(u, v);
-//        double privacyAffinity = calculatePrivacyAffinity(u, v);
-//        double couplingAffinity = calculateCouplingAffinity(u, v);
-//        double functionalAffinity = calculateFunctionalAffinity(u, v);
-//        double operationalAffinity = calculateOperationalAffinity(u, v);
 
         // Return the weighted sum of all affinity types
         return weights.get("data") * dataAffinity;
-//                weights.get("privacy") * privacyAffinity +
-//                weights.get("coupling") * couplingAffinity +
-//                weights.get("functional") * functionalAffinity +
-//                weights.get("operational") * operationalAffinity;
     }
 
 

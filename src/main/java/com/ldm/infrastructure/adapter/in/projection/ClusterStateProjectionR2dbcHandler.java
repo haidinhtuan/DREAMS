@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -47,8 +48,8 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
 
     private final DashboardWebSocket dashboardWebSocket;
 
-    public static Long migrationsAppliedCount = 0L;
-    public static String lastMigratedMicroservice = "None";
+    private static final AtomicLong migrationsAppliedCount = new AtomicLong(0L);
+    private static volatile String lastMigratedMicroservice = "None";
 
     @Override
     public CompletionStage<Done> process(R2dbcSession session, EventEnvelope<ClusterStateActor.Event> envelope) {
@@ -102,7 +103,7 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
 
     private Mono<Done> handleMigration(R2dbcSession session, ClusterStateActor.MigrationPerformed event) {
         log.debug("Migrated Microservice Projection: {}", event);
-        ++migrationsAppliedCount;
+        migrationsAppliedCount.incrementAndGet();
 
         MigrationAction migrationAction = event.migrationAction();
 
@@ -179,7 +180,7 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
 
                                     while (fieldNames.hasNext()) {
                                         String key = fieldNames.next();
-                                        if (key.contains(migrationAction.microservice().getId())) {
+                                        if (key.contains("id='" + migrationAction.microservice().getId() + "'")) {
                                             keysToUpdate.add(key);
                                         }
                                     }
@@ -255,7 +256,7 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
                     JsonObjectBuilder graphJsonObjectBuilder = this.ldmStateService.getJsonObjectBuilder(ldmStateList);
                     JsonObjectBuilder migrationsAppliedJsonObjectBuilder = Json.createObjectBuilder();
                     migrationsAppliedJsonObjectBuilder.add("lastMigratedMicroservice", migrationAction.microservice().getId()+" -> " + migrationAction.targetK8sCluster().getLocation());
-                    migrationsAppliedJsonObjectBuilder.add("migrationsAppliedCount", migrationsAppliedCount);
+                    migrationsAppliedJsonObjectBuilder.add("migrationsAppliedCount", migrationsAppliedCount.get());
 
                     lastMigratedMicroservice = migrationAction.microservice().getId()+" -> " + migrationAction.targetK8sCluster().getLocation();
 

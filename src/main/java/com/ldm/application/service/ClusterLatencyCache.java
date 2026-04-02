@@ -26,7 +26,7 @@ public class ClusterLatencyCache {
 
     // Synchronously invalidate (remove) a microservice's entry from the cache
     @CacheInvalidate(cacheName = "ldm-service-latencies")
-    public void removeMicroservicePlacement(@CacheKey String microserviceId) {
+    public void removeLatencyEntry(@CacheKey String microserviceId) {
         cache.invalidate(microserviceId).await().indefinitely();
     }
 

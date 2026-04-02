@@ -45,10 +45,8 @@ public class LdmStateService {
                     ));
 
             // Parse microservice_affinities as edges
-//            String affinitiesJson = state.getMicroserviceAffinities();
             Map<String, Double> microserviceAffinities = state.getMicroserviceAffinities();
             Map<Microservice, Double> affinities = parseAffinities(microserviceAffinities);
-//            Map<Microservice, Double> affinities = parseAffinities(affinitiesJson);
             for (var entry : affinities.entrySet()) {
                 edges.add(Json.createObjectBuilder()
                         .add("data", Json.createObjectBuilder()

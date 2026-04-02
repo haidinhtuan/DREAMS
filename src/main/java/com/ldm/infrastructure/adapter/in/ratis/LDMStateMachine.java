@@ -33,6 +33,7 @@ import org.apache.ratis.thirdparty.com.google.protobuf.ByteString;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -50,9 +51,9 @@ public class LDMStateMachine extends BaseStateMachine implements MigrationMachin
 
     private final DashboardWebSocket dashboardWebSocket;
 
-    public static long leaderChangeCount = 0L;
+    private static final AtomicLong leaderChangeCount = new AtomicLong(0L);
 
-    public static String currentLeader = "N/A";
+    private static volatile String currentLeader = "N/A";
 
     /**
      * Processes migration actions
@@ -130,14 +131,11 @@ public class LDMStateMachine extends BaseStateMachine implements MigrationMachin
     public void notifyLeaderChanged(RaftGroupMemberId groupMemberId, RaftPeerId newLeaderId) {
         log.info("Leader change detected: New leader is {}", newLeaderId);
         currentLeader = newLeaderId.toString();
-//        Long currentleaderChangeCount = this.keyFiguresCache.getValueByKeyFigure(KeyFigureEnum.LEADER_CHANGE_COUNT.toString());
-//        this.keyFiguresCache.cacheKeyFigure(KeyFigureEnum.LEADER_CHANGE_COUNT.toString(), currentleaderChangeCount+1);
         JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
         jsonObjectBuilder.add("NEW_LEADER", newLeaderId.toString());
-//        Long leaderChangeCount = this.keyFiguresCache.getValueByKeyFigure(KeyFigureEnum.LEADER_CHANGE_COUNT.toString());
 
-        jsonObjectBuilder.add(KeyFigureEnum.LEADER_CHANGE_COUNT.toString(), ++leaderChangeCount);
-        log.debug(KeyFigureEnum.LEADER_CHANGE_COUNT + ": " + leaderChangeCount);
+        jsonObjectBuilder.add(KeyFigureEnum.LEADER_CHANGE_COUNT.toString(), leaderChangeCount.incrementAndGet());
+        log.debug(KeyFigureEnum.LEADER_CHANGE_COUNT + ": " + leaderChangeCount.get());
 
         this.dashboardWebSocket.broadcast(MessageTypeEnum.LEADER_CHANGED, jsonObjectBuilder.build());
         try {

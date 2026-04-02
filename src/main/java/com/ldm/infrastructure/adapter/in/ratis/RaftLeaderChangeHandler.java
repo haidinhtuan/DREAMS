@@ -77,10 +77,8 @@ public class RaftLeaderChangeHandler implements LeaderChangeHandler<RaftGroupMem
         );
 
         if (LeaderElectionModeEnum.TESTING == leaderElectionModeEnum) {
-//                GroupInfoReply groupInfo = ApplicationUtils.fetchGroupInfo(raftServer, raftPeerId, raftGroupId);
             if (!StringUtil.isNullOrEmpty(defaultLeader)) {
                 log.info(">> Set to Default Leader: " + defaultLeader);
-//                    RaftPeer defaultLeaderPeer = groupInfo.getGroup().getPeer(RaftPeerId.valueOf(defaultLeader));
                 request = ApplicationUtils.createTransferLeadershipRequest(raftPeerId, raftGroupId, RaftPeerId.valueOf(defaultLeader));
             }
         }
