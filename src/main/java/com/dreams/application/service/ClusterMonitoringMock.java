@@ -6,6 +6,7 @@ import com.dreams.domain.model.Microservice;
 import com.dreams.domain.model.testdata.ClusterData;
 import com.dreams.infrastructure.config.ActorSystemManager;
 import com.dreams.infrastructure.config.TestDataConfig;
+import io.quarkus.arc.lookup.LookupIfProperty;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +16,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-//@IfBuildProperty(name = "ldm.enable-cluster-monitoring", stringValue = "false")
 @ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j
+@LookupIfProperty(name = "ldm.monitoring.mode", stringValue = "experiment")
 public class ClusterMonitoringMock implements ClusterMonitoringService {
 
     @Getter
