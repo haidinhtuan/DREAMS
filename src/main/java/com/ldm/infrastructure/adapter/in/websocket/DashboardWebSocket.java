@@ -47,16 +47,16 @@ public class DashboardWebSocket {
         managedExecutor.execute(() -> {
             try {
                 JsonObjectBuilder leaderChangedJsonObjectBuilder = Json.createObjectBuilder();
-                leaderChangedJsonObjectBuilder.add("NEW_LEADER", LDMStateMachine.currentLeader);
-                leaderChangedJsonObjectBuilder.add(KeyFigureEnum.LEADER_CHANGE_COUNT.toString(), LDMStateMachine.leaderChangeCount);
+                leaderChangedJsonObjectBuilder.add("NEW_LEADER", LDMStateMachine.getCurrentLeader());
+                leaderChangedJsonObjectBuilder.add(KeyFigureEnum.LEADER_CHANGE_COUNT.toString(), LDMStateMachine.getLeaderChangeCount());
                 JsonObject leaderChangedJsonResponse = Json.createObjectBuilder()
                         .add("type", MessageTypeEnum.LEADER_CHANGED.toString())
                         .add("value", leaderChangedJsonObjectBuilder.build())
                         .build();
 
                 JsonObjectBuilder migrationsAppliedJsonObjectBuilder = Json.createObjectBuilder();
-                migrationsAppliedJsonObjectBuilder.add("lastMigratedMicroservice", ClusterStateProjectionR2dbcHandler.lastMigratedMicroservice);
-                migrationsAppliedJsonObjectBuilder.add("migrationsAppliedCount", ClusterStateProjectionR2dbcHandler.migrationsAppliedCount);
+                migrationsAppliedJsonObjectBuilder.add("lastMigratedMicroservice", ClusterStateProjectionR2dbcHandler.getLastMigratedMicroservice());
+                migrationsAppliedJsonObjectBuilder.add("migrationsAppliedCount", ClusterStateProjectionR2dbcHandler.getMigrationsAppliedCount());
 
                 JsonObject migrationAppliedJsonResponse = Json.createObjectBuilder()
                         .add("type", MessageTypeEnum.MIGRATION_APPLIED.toString())

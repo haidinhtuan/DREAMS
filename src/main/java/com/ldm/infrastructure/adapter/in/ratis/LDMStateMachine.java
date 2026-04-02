@@ -55,6 +55,9 @@ public class LDMStateMachine extends BaseStateMachine implements MigrationMachin
 
     private static volatile String currentLeader = "N/A";
 
+    public static long getLeaderChangeCount() { return leaderChangeCount.get(); }
+    public static String getCurrentLeader() { return currentLeader; }
+
     /**
      * Processes migration actions
      */

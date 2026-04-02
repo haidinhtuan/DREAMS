@@ -9,7 +9,7 @@ const GraphPage: React.FC = () => {
   return (
     <div>
       <h1>Microservices Graph</h1>
-      <Graph />
+      <Graph data={null} />
     </div>
   );
 };

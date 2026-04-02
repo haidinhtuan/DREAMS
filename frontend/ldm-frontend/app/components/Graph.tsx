@@ -8,16 +8,6 @@ import fcose from "cytoscape-fcose";
 // Register the fcose layout
 cytoscape.use(fcose);
 
-// Extend LayoutOptions to include fcose-specific properties
-interface FCOSELayoutOptions extends cytoscape.BaseLayoutOptions {
-  name: "fcose";
-  randomize: boolean;
-  fit: boolean;
-  padding: number;
-  nodeRepulsion: number;
-  idealEdgeLength: number;
-  edgeElasticity: number;
-}
 
 interface NodeData {
   id: string;

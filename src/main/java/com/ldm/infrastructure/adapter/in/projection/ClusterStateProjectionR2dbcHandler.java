@@ -51,6 +51,9 @@ public class ClusterStateProjectionR2dbcHandler extends R2dbcHandler<EventEnvelo
     private static final AtomicLong migrationsAppliedCount = new AtomicLong(0L);
     private static volatile String lastMigratedMicroservice = "None";
 
+    public static long getMigrationsAppliedCount() { return migrationsAppliedCount.get(); }
+    public static String getLastMigratedMicroservice() { return lastMigratedMicroservice; }
+
     @Override
     public CompletionStage<Done> process(R2dbcSession session, EventEnvelope<ClusterStateActor.Event> envelope) {
         ClusterStateActor.Event event = envelope.event();
