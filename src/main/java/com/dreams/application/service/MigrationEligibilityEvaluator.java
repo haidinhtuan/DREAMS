@@ -16,12 +16,12 @@ import java.util.Optional;
 @ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j
-public class DomainManager {
+public class MigrationEligibilityEvaluator {
     private final LdmConfig ldmConfig;
 
     private final QoSOptimizationService qosOptimizationService;
 
-    private final MicroservicesCache microservicesCache;
+    private final ServiceHealthMonitor microservicesCache;
 
 
     public MigrationCandidate findMigrationCandidate() {

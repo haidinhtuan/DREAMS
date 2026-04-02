@@ -1,7 +1,7 @@
 package com.dreams.domain.service.impl;
 
-import com.dreams.application.service.ClusterLatencyCache;
-import com.dreams.application.service.MicroservicesCache;
+import com.dreams.application.service.InterDomainLatencyMonitor;
+import com.dreams.application.service.ServiceHealthMonitor;
 import com.dreams.domain.service.AffinityCalculationService;
 import com.dreams.domain.service.QoSCalculationService;
 import com.dreams.domain.service.QoSOptimizationService;
@@ -23,7 +23,7 @@ import java.util.Map;
 @ApplicationScoped
 @Slf4j
 @RequiredArgsConstructor
-public class DefaultOptimizationService implements QoSOptimizationService {
+public class CostBenefitAnalyzer implements QoSOptimizationService {
 
     @ConfigProperty(name = "ldm.voting.max-affinity-value", defaultValue = "100")
     int maxAffinityValue;
@@ -33,8 +33,8 @@ public class DefaultOptimizationService implements QoSOptimizationService {
 
     private final LdmConfig ldmConfig;
 
-    private final MicroservicesCache microservicesCache;
-    private final ClusterLatencyCache clusterLatencyCache;
+    private final ServiceHealthMonitor microservicesCache;
+    private final InterDomainLatencyMonitor clusterLatencyCache;
 
     private final QoSCalculationService qosCalculationService;
 
