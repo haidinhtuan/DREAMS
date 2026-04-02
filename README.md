@@ -5,7 +5,7 @@
 [![Java](https://img.shields.io/badge/Java-17+-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org)
 [![Quarkus](https://img.shields.io/badge/Quarkus-3.14-4695EB?logo=quarkus&logoColor=white)](https://quarkus.io)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.30+-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io)
-[![IEEE](https://img.shields.io/badge/IEEE-10.1109/ISNCC62547.2024.10759067-00629B)](https://ieeexplore.ieee.org/document/11250481/)
+[![IEEE](https://img.shields.io/badge/IEEE_ISNCC_2025-11250481-00629B)](https://ieeexplore.ieee.org/document/11250481)
 
 DREAMS is a decentralized framework that optimizes microservice placement decisions collaboratively across distributed computational domains. Each domain is managed by an autonomous **Local Domain Manager (LDM)** that coordinates with peers through a Raft-based consensus algorithm and cost-benefit voting to achieve globally optimized service placements with high fault tolerance.
 
@@ -356,7 +356,7 @@ Set `LEADER_ELECTION_MODE=DEFAULT` for realistic Raft-based leader election, or 
 
 DREAMS builds on a series of prior work on service affinity and microservice management:
 
-1. **H. Dinh-Tuan, T. H. Nguyen, and S. R. Pandey**, "DREAMS: Decentralized Resource Allocation and Service Management across the Compute Continuum Using Service Affinity," *2025 12th International Symposium on Networks, Computers and Communications (ISNCC)*, IEEE, 2025. [[arXiv]](https://arxiv.org/abs/2509.07497)
+1. **H. Dinh-Tuan, T. H. Nguyen, and S. R. Pandey**, "DREAMS: Decentralized Resource Allocation and Service Management across the Compute Continuum Using Service Affinity," *2025 12th International Symposium on Networks, Computers and Communications (ISNCC)*, IEEE, 2025. [[IEEE]](https://ieeexplore.ieee.org/document/11250481) [[arXiv]](https://arxiv.org/abs/2509.07497)
 
 2. **H. Dinh-Tuan and F. F. Six**, "Optimizing Cloud-Native Services with SAGA: A Service Affinity Graph-Based Approach," *2024 International Conference on Smart Applications, Communications and Networking (SmartNets)*, IEEE, 2024, pp. 1-6. [[IEEE]](https://ieeexplore.ieee.org/document/10577743/) [[arXiv]](https://arxiv.org/abs/2509.05790)
 
