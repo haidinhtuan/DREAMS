@@ -30,32 +30,34 @@ Each LDM operates autonomously within its domain while coordinating globally thr
 ```mermaid
 flowchart TB
     subgraph LDM1["LDM 1 (us-east4)"]
-        AM1["Administrative\nModule"]
-        DMM1["Domain\nMonitoring"]
-        MIM1["Migration\nIntelligence"]
-        CMM1["Consensus\nManagement"]
-        MEM1["Migration\nExecution"]
+        direction TB
+        AM1["AM\nAdministrative"]
+        CCM1["CCM\nConfiguration"]
+        ODM1["ODM\nObservability"]
+        DMM1["DMM\nDomain Monitoring"]
+        MIM1["MIM\nMigration Intelligence"]
+        CMM1["CMM\nConsensus Management"]
+        MEM1["MEM\nMigration Execution"]
+        ICM1["ICM\nInter-Domain Comm."]
     end
 
     subgraph LDM2["LDM 2 (europe-west3)"]
-        AM2["Administrative\nModule"]
-        DMM2["Domain\nMonitoring"]
-        MIM2["Migration\nIntelligence"]
-        CMM2["Consensus\nManagement"]
-        MEM2["Migration\nExecution"]
+        direction TB
+        CMM2["CMM"]
+        ICM2["ICM"]
     end
 
     subgraph LDM3["LDM 3 (asia-southeast1)"]
-        AM3["Administrative\nModule"]
-        DMM3["Domain\nMonitoring"]
-        MIM3["Migration\nIntelligence"]
-        CMM3["Consensus\nManagement"]
-        MEM3["Migration\nExecution"]
+        direction TB
+        CMM3["CMM"]
+        ICM3["ICM"]
     end
 
     CMM1 <-->|"Raft Consensus\n+ Voting"| CMM2
     CMM2 <-->|"Raft Consensus\n+ Voting"| CMM3
     CMM1 <-->|"Raft Consensus\n+ Voting"| CMM3
+    ICM1 <-.->|"Gossip + Latency\nMeasurement"| ICM2
+    ICM2 <-.->|"Gossip + Latency\nMeasurement"| ICM3
 ```
 
 ### LDM Modules
@@ -83,12 +85,13 @@ flowchart TB
 
 ## Service Affinity
 
-Service Affinity captures four dimensions of microservice relationships to quantify placement quality:
+Service Affinity captures five dimensions of microservice relationships to quantify placement quality (Eq. 12.1):
 
-- **Runtime communication** -- message frequency and data exchange volume between services
-- **Design-time dependencies** -- architectural coupling in the service dependency graph
-- **Operational patterns** -- shared deployment lifecycle, co-scaling behavior
-- **Data privacy constraints** -- compliance zones and data classification requirements
+- **Data affinity** -- normalized ratio of bytes exchanged between services to total data volume
+- **Coupling affinity** -- normalized message frequency and API call count between services
+- **Functional affinity** -- dependency graph membership (shared service dependency groups)
+- **Operational affinity** -- hardware similarity vs. resource contention balance
+- **Security & privacy affinity** -- penalty-based constraint against cross-group placements
 
 ### QoS Improvement Score
 
@@ -109,22 +112,25 @@ Migration is proposed when `Q > θ_proposal`.
 
 ### Phase 1 -- Candidate Selection (Leader LDM)
 
-1. Filter non-migratable microservices and those already optimally placed
-2. Compute cluster affinity scores across all clusters
-3. Calculate affinity gain: `ΔA = A_inter - A_intra`
-4. Apply latency penalty with sigmoid scaling (controlled by `γ_proposal`)
-5. Select the candidate with the highest QoS improvement score `Q`
-6. If `Q > θ_proposal`, broadcast migration proposal to all LDMs
+1. Filter non-migratable microservices and those already in their highest-affinity cluster
+2. Compute cluster affinity `A_c(m)` for each candidate across all clusters
+3. Determine intra-cluster affinity `A_intra` and best inter-cluster affinity `A_inter`
+4. Calculate affinity gain: `ΔA = A_inter - A_intra`
+5. Retrieve inter-domain latency `ℓ` to the target cluster
+6. Apply latency penalty with sigmoid scaling: `L = ℓ / (1 + exp(ΔA / γ_proposal))`
+7. If `Q = ΔA - L > θ_proposal`, broadcast migration proposal to all LDMs
 
 ### Phase 2 -- Voting (All LDMs)
 
 Each LDM independently evaluates the proposal:
 
-1. Compute local impact score from connected microservices
-2. If no local impact (`I_local = 0`), cast positive vote immediately
-3. Normalize impact and compute latency difference to target cluster
-4. Calculate affinity penalty weight (sigmoid-scaled by `γ_vote`)
-5. If scaled latency penalty `< θ_vote`, cast positive vote; otherwise, negative
+1. Compute local impact score: `I_local = Σ a(m,v)` for all local microservices connected to *m*
+2. If no local impact (`I_local = 0`), cast positive vote immediately (positive-vote-by-default)
+3. Normalize impact: `Ĩ = (I_local - I_min) / (I_max - I_min + ε)`
+4. Compute latency difference: `Δℓ = ℓ(target, voter) - ℓ(source, voter)`
+5. Calculate affinity penalty weight: `W_aff = 1 / (1 + exp(-Ĩ / γ_vote))`
+6. Compute scaled latency penalty: `P_lat = (Δℓ × W_aff) / ℓ_max`
+7. If `P_lat < θ_vote`, cast positive vote; otherwise, negative vote
 
 Consensus is reached via Raft quorum (majority vote). The theoretical complexity of the voting procedure is **O(1)** -- all LDMs evaluate independently in parallel.
 
@@ -275,41 +281,54 @@ The frontend connects via WebSocket to the LDM backend (e.g., `ws://localhost:80
 | Endpoint | Description |
 |:---------|:------------|
 | `GET /api/migrations` | Read migration actions from Raft storage |
-| `POST /api/ratis/trigger-leader-change/{peerId}` | Trigger leadership change (must be called on current leader) |
+| `GET /api/ratis/trigger-leader-change/{raftPeerId}` | Trigger leadership change (must be called on current leader) |
+| `GET /q/health` | Combined health check (liveness + readiness) |
+| `GET /q/health/live` | Liveness probe |
+| `GET /q/health/ready` | Readiness probe |
+| `GET /q/openapi` | OpenAPI specification |
+| `GET /q/swagger-ui` | Swagger UI (dev mode only) |
 
 ## Project Structure
 
 ```
 DREAMS/
 ├── src/main/java/com/dreams/
-│   ├── application/                 # Use cases and application services
-│   │   ├── port/                   # Port interfaces
-│   │   └── service/                # DomainManager, caches, state services
-│   ├── domain/                      # Domain models and business logic
-│   │   ├── model/                  # Microservice, K8sCluster, MigrationAction
-│   │   └── service/                # Affinity calculation, QoS optimization
-│   ├── infrastructure/              # Technical adapters
+│   ├── application/
+│   │   ├── port/                   # Port interfaces (MigrationService, ClusterMonitoringService)
+│   │   └── service/                # MigrationEligibilityEvaluator, ServiceHealthMonitor, MetricsAggregator
+│   ├── domain/
+│   │   ├── model/                  # Microservice, K8sCluster, MigrationAction, MigrationCandidate
+│   │   ├── measurement/            # MeasurementData, MeasurementDataDTO
+│   │   └── service/impl/           # ServiceAffinityCalculator, CostBenefitAnalyzer, QoSImprovementCalculator
+│   ├── infrastructure/
 │   │   ├── adapter/in/
-│   │   │   ├── pekko/             # Cluster actors, migration voters
-│   │   │   ├── ratis/             # Raft state machine, leader election
-│   │   │   ├── rest/              # REST API endpoints
-│   │   │   ├── websocket/         # Dashboard WebSocket
-│   │   │   └── projection/        # Event projections
-│   │   ├── adapter/out/            # Output adapters
-│   │   ├── config/                 # CDI configuration
-│   │   ├── serialization/          # Protobuf serializers
-│   │   └── mapper/                 # MapStruct mappers
+│   │   │   ├── pekko/             # LdmDiscoveryService, HealthExchangeService, MigrationProposalVoter
+│   │   │   ├── ratis/             # LDMStateMachine, LeaderCoordinator
+│   │   │   ├── rest/              # MigrationActionResource, RaftActionResource
+│   │   │   ├── websocket/         # DashboardWebSocket
+│   │   │   └── projection/        # ClusterStateProjectionR2dbcHandler
+│   │   ├── adapter/out/pekko/      # ProposalManager, ConsensusVotingEngine, MigrationOrchestrator
+│   │   ├── config/                 # LdmConfig, ActorSystemManager, RaftServerManager
+│   │   ├── serialization/          # Protobuf generated classes
+│   │   ├── mapper/                 # MapStruct mappers
+│   │   ├── json/                   # Custom JSON serializers/deserializers
+│   │   └── persistence/            # JPA entities and converters
+│   ├── modules/                     # LDM module facades (AM, CCM, ODM, DMM, MIM, CMM, MEM, ICM)
 │   └── shared/                      # Constants and utilities
+├── src/test/java/com/dreams/        # Unit tests (20 tests)
 ├── src/main/proto/                  # Protobuf definitions
 ├── src/main/resources/
 │   ├── application.yaml             # Quarkus + LDM configuration
 │   ├── application.conf             # Apache Pekko configuration
 │   └── db/changelog/               # Liquibase migrations
-├── frontend/ldm-frontend/           # Next.js dashboard
-│   ├── app/dashboard/              # Dashboard page (WebSocket consumer)
-│   └── app/components/Graph.tsx    # Cytoscape.js graph visualization
+├── frontend/ldm-frontend/           # Next.js 15 dashboard
+│   ├── app/dashboard/              # Dashboard page (WebSocket with auto-reconnect)
+│   └── app/components/             # Graph.tsx (Cytoscape.js), KeyFigureCard.tsx
 ├── experiments/
 │   ├── exp1/ -- exp5/              # Test scenarios with JSON topology files
+│   ├── run-experiment.sh           # Experiment automation script
+│   └── collect-results.sh         # Results collection script
+├── .github/workflows/ci.yml        # GitHub Actions CI/CD
 ├── docker-compose.yml               # 3-node LDM cluster
 ├── docker-compose-exp.yml           # 6-node experimental cluster
 └── build.gradle                     # Gradle build configuration
