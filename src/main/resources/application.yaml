@@ -3,7 +3,7 @@ quarkus:
   http:
     port: ${QUARKUS_HTTP_PORT:8080}
   jib:
-    platforms: linux/arm64
+    platforms: linux/arm64,linux/amd64
   log:
     category:
       "com.dreams":
