@@ -3,8 +3,10 @@ package com.ldm.infrastructure.mapper;
 import com.google.protobuf.Timestamp;
 import com.ldm.domain.model.MigrationAction;
 import com.ldm.infrastructure.serialization.protobuf.MigrationActionOuterClass;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.ReportingPolicy;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ public interface MigrationMapper {
     @Mapping(target = "createdAt", expression = "java(toLocalDateTime(protoMigrationAction.getCreatedAt()))")
     MigrationAction toDomainModel(MigrationActionOuterClass.MigrationAction protoMigrationAction);
 
+    @BeanMapping(unmappedTargetPolicy = ReportingPolicy.IGNORE)
     @Mapping(target = "microservice", source = "migrationAction.microservice")
     @Mapping(target = "targetCluster", source = "migrationAction.targetK8sCluster")
     @Mapping(target = "suggestedAt", expression = "java(toTimestamp(migrationAction.suggestedAt()))")

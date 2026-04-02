@@ -218,7 +218,7 @@ public class QoSImprovementSuggester {
             ActorRef<Receptionist.Listing> listingResponseAdapter,
             Duration timeout,
             LDMStateMachine ldmStateMachine,
-            LeaderChangeHandler leaderChangeHandler,
+            LeaderChangeHandler<RaftGroupMemberId, RaftPeerId, RaftServer, RaftGroupId> leaderChangeHandler,
             String processId,
             MeasurementService measurementService,
             DashboardWebSocket dashboardWebSocket
@@ -370,14 +370,12 @@ public class QoSImprovementSuggester {
                         context.getSystem().scheduler()
                 ))
                 .map(future -> future.thenApply(response -> {
-                    // Extract the Boolean approval from the response
-                    if (response instanceof StatusReply) {
-                        log.debug("Received Vote: " + ((StatusReply<?>) response).getValue());
-                        return ((StatusReply<Boolean>) response).isSuccess()
-                                ? ((StatusReply<Boolean>) response).getValue()
-                                : false;
+                    if (response instanceof Boolean vote) {
+                        log.debug("Received Vote: " + vote);
+                        return vote;
                     }
-                    return (Boolean) response;
+                    log.warn("Unexpected response type: {}", response.getClass());
+                    return false;
                 }))
                 .collect(Collectors.toSet());
     }
