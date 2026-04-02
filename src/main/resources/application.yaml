@@ -24,7 +24,8 @@ quarkus:
         level: ${RATIS_LOG_LEVEL:WARN}
       "org.apache.ratis.server.raftserver": # Suppress leader election logs
         level: ${RATIS_LOG_LEVEL:WARN}
-      "org.hibernate": DEBUG
+      "org.hibernate":
+        level: DEBUG
   container-image:
     build: true
     push: false
@@ -43,9 +44,9 @@ quarkus:
     password: ${DB_PASSWORD:passw0rd}
     jdbc:
       url: ${DB_JDBC_URL:jdbc:postgresql://localhost:5432/ldm_migrations}
-    max-size: 10 # Maximum number of connections in the pool
-    min-size: 1  # Minimum number of connections in the pool
-    acquisition-timeout: 5 # Timeout in seconds for acquiring a connection
+      max-size: 10
+      min-size: 1
+      acquisition-timeout: 5s
   liquibase:
     migrate-at-start: ${LIQUIBASE_MIGRATE_AT_START:true}
     clean-at-start: ${LIQUIBASE_CLEAN_AT_START:true}   # Drops the schema before migration
@@ -53,8 +54,6 @@ quarkus:
   hibernate-orm:
     database:
       generation: ${DB_HIBERNATE_DB_GENERATION:none} #drop-and-create
-hibernate:
-  dialect: org.hibernate.dialect.PostgreSQLDialect
 # LDM Configuration
 ldm:
   id: ${LDM_ID:54f34e52-b466-49f8-b525-230cd107148b}
