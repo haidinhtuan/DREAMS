@@ -11,7 +11,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -46,6 +51,37 @@ public class MigrationEligibilityEvaluator {
         log.warn("[[[[[[ DOMAIN MANAGER QoS Improvement Evaluation Result ]]]]]]]: Leader LDM with ID <" + ldmConfig.id() + "> does NOT propose migration since it was BELOW the proposal threshold. <<");
         return null;
 
+    }
+
+    /**
+     * Find top-K migration candidates that don't conflict with each other.
+     * Two candidates conflict if they involve the same microservice or same target cluster.
+     */
+    public List<MigrationCandidate> findTopMigrationCandidates(int maxCandidates) {
+        // Delegate to optimization service for all candidates above threshold
+        List<MigrationCandidate> allCandidates = qosOptimizationService.findAllMigrationCandidates();
+        if (allCandidates == null || allCandidates.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // Sort by QoS improvement score descending
+        allCandidates.sort((a, b) -> Double.compare(b.improvementScore(), a.improvementScore()));
+
+        // Select non-conflicting candidates (greedy)
+        List<MigrationCandidate> selected = new ArrayList<>();
+        Set<String> usedMicroserviceIds = new HashSet<>();
+
+        for (MigrationCandidate candidate : allCandidates) {
+            if (selected.size() >= maxCandidates) break;
+            String msId = candidate.microservice().getId();
+            if (!usedMicroserviceIds.contains(msId)) {
+                selected.add(candidate);
+                usedMicroserviceIds.add(msId);
+            }
+        }
+
+        log.info("Selected {} non-conflicting migration candidates from {} total", selected.size(), allCandidates.size());
+        return selected;
     }
 
     public boolean voteOnMigrationProposal(Microservice migratingMicroservice, String targetLdmId) {
