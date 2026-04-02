@@ -22,7 +22,9 @@ public class ServiceAffinityCalculator implements AffinityCalculationService {
 
     /**
      * Data Affinity (Eq. 12.3.1): d(u,v) = b(u,v) / B(Δt)
-     * Normalized ratio of bytes exchanged between u and v to total bytes exchanged by u.
+     * In centralized SAGA, B is the global application total.
+     * In decentralized DREAMS, each LDM normalizes using the local microservice's
+     * total data exchange as a proxy for the domain-scoped B(Δt).
      */
     @Override
     public double calculateDataAffinity(Microservice u, Microservice v) {
@@ -32,7 +34,9 @@ public class ServiceAffinityCalculator implements AffinityCalculationService {
 
     /**
      * Coupling Affinity (Eq. 12.3.2): c(u,v) = m(u,v) / M(Δt)
-     * Normalized count of messages exchanged between u and v.
+     * In centralized SAGA, M is the global application total.
+     * In decentralized DREAMS, each LDM normalizes using the local microservice's
+     * total message count as a proxy for the domain-scoped M(Δt).
      */
     @Override
     public double calculateCouplingAffinity(Microservice u, Microservice v) {
